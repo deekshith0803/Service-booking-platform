@@ -33,13 +33,13 @@ import location_icon_colored from "./location_icon_colored.svg";
 import testimonial_image_1 from "./testimonial_image_1.png";
 import testimonial_image_2 from "./testimonial_image_2.png";
 import main_service from "./main_service.png";
-import banner_service_image from "./banner_car_image.png";
+import banner_service_image from "./banner_service_image.jpeg";
 import user_profile from "./user_profile.png";
 import upload_icon from "./upload_icon.svg";
-import service_image2 from "./car_image2.png";
-import service_image1 from "./car_image1.png";
-import service_image3 from "./car_image3.png";
-import service_image4 from "./car_image4.png";
+import service_image2 from "./service_image2.jpeg";
+import service_image1 from "./service_image1.jpeg";
+import service_image3 from "./service_image3.jpeg";
+import service_image4 from "./service_image4.jpeg";
 
 export const cityList = ["New York", "Los Angeles", "Houston", "Chicago"];
 

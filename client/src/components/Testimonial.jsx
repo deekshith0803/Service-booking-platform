@@ -1,0 +1,53 @@
+import React from 'react'
+import Title from "./Title"
+import { assets } from '../assets/assets';
+
+const Testimonial = () => {
+const testimonials = [
+    {
+        name: "Emma Rodriguez",
+        location: "Barcelona, Spain",
+        image: assets.testimonial_image_1,
+        testimonial: "Booking a service through Fixora was seamless. The professional arrived on time, did a fantastic job, and the whole process was smooth and stress-free. Highly recommended!"
+    },
+    {
+        name: "Aarav Mehta",
+        location: "Mumbai, India",
+        image: assets.testimonial_image_2,
+        testimonial: "Fixora made it so easy to find the right service provider. I booked a home cleaning, and the quality was top-notch. Will definitely use it again!"
+    },
+    {
+        name: "Sophia Nguyen",
+        location: "Melbourne, Australia",
+        image: assets.testimonial_image_1,
+        testimonial: "I was amazed at how quick and professional the entire experience was. From booking to completion, Fixora handled everything perfectly!"
+    }
+];
+
+    return (
+        <div className="py-28 px-6 md:px-16 lg:px-14 xl:px-44">
+            <Title title="What our customers say" subtitle="Hear how Fixora is making service booking simple, fast, and reliable." />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-18">
+                {testimonials.map((testimonial, index) => (
+                    <div key={index} className="bg-white p-6 rounded-xl shadow-lg hover:translate-y-1 hover:shadow-2xl transition-all duration-500">
+                        <div className="flex items-center gap-3">
+                            <img className="w-12 h-12 rounded-full" src={testimonial.image} alt={testimonial.name} />
+                            <div>
+                                <p className="font-playfair text-xl">{testimonial.name}</p>
+                                <p className="text-gray-500">{testimonial.location}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1 mt-4">
+                            {Array(5).fill(0).map((_, index) => (
+                                <img key={index} src={assets.star_icon} alt="Star" className="w-4 h-4" />
+                            ))}
+                        </div>
+                        <p className="text-gray-500 max-w-90 mt-4 font-light">"{testimonial.testimonial}"</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+export default Testimonial

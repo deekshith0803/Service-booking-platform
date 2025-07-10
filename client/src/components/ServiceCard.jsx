@@ -1,12 +1,17 @@
 import React from 'react'
 import { assets } from '../assets/assets'
+import { useNavigate } from 'react-router-dom'
 
 const ServiceCard = ({ service }) => {
 
     const currency = import.meta.env.VITE_CURRENCY
+    const navigate = useNavigate();
 
     return (
-        <div className='group rounded-lg overflow-hidden shadow-lg hower:transition-y-1 transition-all duration-500 curser-pointer'>
+        <div onClick={() => {
+            navigate(`/service-details/${service._id}`);
+            scrollTop(0, 0);
+        }} className='group rounded-lg overflow-hidden shadow-lg hower:transition-y-1 transition-all duration-500 curser-pointer'>
 
             <div className='relative h-50 overflow-hidden'>
                 <img src={service.image} alt="service" className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-110' />
