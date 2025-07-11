@@ -54,9 +54,9 @@ const Footer = () => {
                     </p>
                     <ul className='flex items-center gap-4 md:ml-auto'>
                         <li><a href="#">Privacy</a></li>
-                        <li><span>|</span></li>
+                        <li>|</li>
                         <li><a href="#">Terms</a></li>
-                        <li><span>|</span></li>
+                        <li>|</li>
                         <li><a href="#">Cookies</a></li>
                     </ul>
                 </div>

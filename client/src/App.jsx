@@ -17,11 +17,11 @@ const App = () => {
 
       <Routes>
         <Route path='/' element={<Home />} />
-        <Route path='/service-detais/:id' element={<Servicedetails />} />
+        <Route path='/service-details/:id' element={<Servicedetails />} />
         <Route path='/service' element={<Service />} />
         <Route path='/my-bookings' element={<MyBooking />} />
       </Routes>
-      
+
       {!isProvider && <Footer />}
 
     </>

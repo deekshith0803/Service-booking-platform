@@ -10,9 +10,8 @@ const ServiceCard = ({ service }) => {
     return (
         <div onClick={() => {
             navigate(`/service-details/${service._id}`);
-            scrollTop(0, 0);
-        }} className='group rounded-lg overflow-hidden shadow-lg hower:transition-y-1 transition-all duration-500 curser-pointer'>
-
+            scrollTo(0, 0);
+        }} className='group rounded-lg overflow-hidden shadow-lg hover:translate-y-1 transition-all duration-500 cursor-pointer'>
             <div className='relative h-50 overflow-hidden'>
                 <img src={service.image} alt="service" className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-110' />
                 {service.isAvailable && <p className='absolute top-4 left-4 bg-primary/90 text-white text-xs px-2.5 py-1 rounded-full'>Available now</p>}
