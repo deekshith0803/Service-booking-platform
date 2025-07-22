@@ -195,7 +195,7 @@ export const dummyserviceData = [
     createdAt: "2025-04-17T06:15:47.318Z",
   },
 ];
- 
+
 export const dummyMyBookingsData = [
   {
     id: "68482bcc98eb9722b7751f70",
@@ -274,7 +274,6 @@ export const dummyMyBookingsData = [
     bookedAt: "2025-06-10T09:44:25.410Z",
   },
 ];
-
 
 export const dummyDashboardData = {
   totalservice: 4,
