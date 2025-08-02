@@ -26,11 +26,12 @@ const App = () => {
         <Route path="/service" element={<Service />} />
         <Route path="/my-bookings" element={<MyBooking />} />
         <Route path="/provider" element={<Layout />}>
-          <Route path="dashboard" element={<ProviderDashboard />} />
+          <Route path="" element={<ProviderDashboard />} />
           <Route path="manage-bookings" element={<ManageBookings />} />
           <Route path="manage-service" element={<ManageService />} />
           <Route path="add-service" element={<AddService />} />
         </Route>
+
       </Routes>
 
       {!isProvider && <Footer />}

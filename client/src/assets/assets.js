@@ -201,7 +201,6 @@ export const dummyMyBookingsData = [
     id: "68482bcc98eb9722b7751f70",
     service: dummyserviceData[0],
     serviceId: "67ff5bc069c03d4e45f30b77",
-    title: "Home Deep Cleaning",
     category: "Cleaning",
     service_area: "New York",
     pricePerHour: 50,
@@ -220,7 +219,6 @@ export const dummyMyBookingsData = [
     id: "68482bb598eb9722b7751f60",
     service: dummyserviceData[1],
     serviceId: "67ff6b758f1b3684286a2a65",
-    title: "Plumbing & Leak Repair",
     category: "Plumbing",
     service_area: "Chicago",
     pricePerHour: 65,
@@ -239,7 +237,6 @@ export const dummyMyBookingsData = [
     id: "684800fa0fb481c5cfd92e56",
     service: dummyserviceData[2],
     serviceId: "67ff6b9f8f1b3684286a2a68",
-    title: "Air Conditioner Repair",
     category: "Electrical",
     service_area: "Los Angeles",
     pricePerHour: 80,
@@ -258,7 +255,6 @@ export const dummyMyBookingsData = [
     id: "6847fe790fb481c5cfd92d94",
     service: dummyserviceData[3],
     serviceId: "68009c93a3f5fc6338ea7e34",
-    title: "Furniture Assembly",
     category: "Handyman",
     service_area: "Houston",
     pricePerHour: 40,
@@ -276,7 +272,7 @@ export const dummyMyBookingsData = [
 ];
 
 export const dummyDashboardData = {
-  totalservice: 4,
+  totalService: 4,
   totalBookings: 2,
   pendingBookings: 0,
   completedBookings: 2,
