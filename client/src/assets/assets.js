@@ -279,3 +279,16 @@ export const dummyDashboardData = {
   recentBookings: [dummyMyBookingsData[0], dummyMyBookingsData[1]],
   monthlyRevenue: 840,
 };
+
+export const serviceCategories = [
+  "Electrical",
+  "Plumbing",
+  "Cleaning",
+  "Appliance Repair",
+  "Painting",
+  "Carpentry",
+  "Pest Control",
+  "AC Services",
+  "Gardening",
+  "Other",
+];
