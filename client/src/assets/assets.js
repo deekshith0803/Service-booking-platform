@@ -12,7 +12,7 @@ import location_icon from "./location_icon.svg";
 import fuel_icon from "./fuel_icon.svg";
 import addIcon from "./addIcon.svg";
 import serviceIcon from "./carIcon.svg";
-import serviceIconColored from "./carIconColored.svg";
+import serviceIconColored from "./serviceIconColored.png";
 import dashboardIcon from "./dashboardIcon.svg";
 import dashboardIconColored from "./dashboardIconColored.svg";
 import addIconColored from "./addIconColored.svg";
