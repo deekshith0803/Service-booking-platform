@@ -11,6 +11,7 @@ import ProviderDashboard from "./pages/provider/ProviderDashboard";
 import ManageBookings from "./pages/provider/ManageBookings";
 import ManageService from "./pages/provider/ManageService";
 import AddService from "./pages/provider/AddService";
+import Login from "./components/Login";
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -18,6 +19,8 @@ const App = () => {
 
   return (
     <>
+
+      {showLogin && <Login setShowLogin={setShowLogin} />}
       {!isProvider && <Navbar setShowLogin={setShowLogin} />}
 
       <Routes>

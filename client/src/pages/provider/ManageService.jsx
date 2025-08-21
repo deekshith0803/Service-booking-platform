@@ -4,7 +4,7 @@ import Title from '../../components/provider/Tittl'
 
 const ManageService = () => {
 
-    const currency = import.meta.env.VITE_CURRENCY
+    const currency = import.meta.env.VITE_CURRENCYb
 
     const [service, setService] = useState([])
 
