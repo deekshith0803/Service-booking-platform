@@ -40,6 +40,7 @@ import service_image2 from "./service_image2.jpeg";
 import service_image1 from "./service_image1.jpeg";
 import service_image3 from "./service_image3.jpeg";
 import service_image4 from "./service_image4.jpeg";
+import carIconColour from "./carIconColored.svg";
 
 export const cityList = ["New York", "Los Angeles", "Houston", "Chicago"];
 
@@ -86,6 +87,7 @@ export const assets = {
   service_image2,
   service_image3,
   service_image4,
+  carIconColour,
 };
 
 export const menuLinks = [
@@ -111,7 +113,7 @@ export const providerMenuLinks = [
     name: "Manage service",
     path: "/provider/manage-service",
     icon: serviceIcon,
-    coloredIcon: serviceIconColored,
+    coloredIcon: carIconColour,
   },
   {
     name: "Manage Bookings",
