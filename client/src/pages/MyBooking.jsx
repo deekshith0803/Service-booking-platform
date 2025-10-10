@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { assets, dummyMyBookingsData } from "../assets/assets";
 import Title from "../components/Title";
+import { useNavigate } from "react-router-dom";
 
 const MyBooking = () => {
   const currency = import.meta.env.VITE_CURRENCY;
   const [booking, setBooking] = useState([]);
+
+  const navigate = useNavigate();
 
   const fetchMyBooking = async () => {
     setBooking(dummyMyBookingsData);
@@ -16,6 +19,15 @@ const MyBooking = () => {
 
   return (
     <div className="px-6 md:px-16 lg:px-24 xl:px-32 2xl:px-40 mt-10 text-sm">
+
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 mb-6 text-gray-500 cursor-pointer"
+      >
+        <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-65" />
+        Back
+      </button>
+
       <Title
         title="My Bookings"
         subtitle="view and manage your bookings"

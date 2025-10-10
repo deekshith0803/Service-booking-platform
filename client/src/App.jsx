@@ -12,6 +12,7 @@ import ManageBookings from "./pages/provider/ManageBookings";
 import ManageService from "./pages/provider/ManageService";
 import AddService from "./pages/provider/AddService";
 import Login from "./components/Login";
+import ServiceCategory from "./pages/ServiceCategory";
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -26,6 +27,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/service-details/:id" element={<Servicedetails />} />
+        <Route path="/service/:category" element={<ServiceCategory />} />
         <Route path="/service" element={<Service />} />
         <Route path="/my-bookings" element={<MyBooking />} />
         <Route path="/provider" element={<Layout />}>

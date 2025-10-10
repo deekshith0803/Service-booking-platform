@@ -2,13 +2,25 @@ import React, { useState } from "react";
 import Title from "../components/Title";
 import { assets, dummyserviceData } from "../assets/assets";
 import ServiceCard from "../components/ServiceCard";
+import { useNavigate } from "react-router-dom";
 
 const Service = () => {
   const [input, setInput] = useState("");
+  const navigate = useNavigate();
 
   return (
     <div>
+      <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-10">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 mb-6 text-gray-500 cursor-pointer"
+        >
+          <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-65" />
+          Back
+        </button>
+      </div>
       <div className="flex flex-col items-center py-20 bg-light max-md:px-4">
+
         <Title
           title="Services"
           subtitle="Discover the top-rated services from our trusted professionals."

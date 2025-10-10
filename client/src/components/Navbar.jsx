@@ -9,7 +9,7 @@ const Navbar = ({ setShowLogin }) => {
 
   return (
     <div
-      className={`flex  items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 text-gray-600 border-b border-borderColor relative transition-all duration-300 z-50 ${location.pathname === "/" ? "bg-light" : "bg-white"}`}
+      className={`flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 text-gray-600 border-b border-borderColor relative transition-all duration-300 z-50 ${location.pathname === "/" ? "bg-light" : "bg-white"},`}
     >
       {/* Logo */}
       <Link to="/">

@@ -33,8 +33,11 @@ export const registerUser = async (req: Request, res: Response) => {
     return res.json({ success: true, message: "User registered successfully", token });
 
   } catch (error) {
-    console.log(error);
-    return res.json({ success: false, message: error });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Server error",
+    });
   }
 };
 
@@ -55,7 +58,21 @@ export const loginUser = async (req: Request, res: Response) => {
     const token = generateToken(user._id.toString());
     return res.json({ success: true, message: "User logged in successfully", token });
   } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Server error",
+    });
+  }
+};
+
+//get user data using token (JWT)
+export const getUserData = async (req: Request, res: Response) => {
+  try {
+    const user = req;
+    res.json({ success: true, user });
+  } catch (error) {
     console.log(error);
     return res.json({ success: false, message: error });
   }
-};
+}
