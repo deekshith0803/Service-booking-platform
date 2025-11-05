@@ -1,15 +1,19 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import User, { UserDocument } from "../model/User";
 
 // Extend Express Request interface
 declare global {
     namespace Express {
         interface Request {
-            user?: UserDocument;
+            user?: UserDocument | null;
         }
     }
 }
+interface DecodedToken extends JwtPayload {
+    id: string;
+  }
+
 
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization;

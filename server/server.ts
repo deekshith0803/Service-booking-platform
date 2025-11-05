@@ -1,9 +1,10 @@
 import express from "express";
 import "dotenv/config";
 import cors from "cors";
-import userRouter from "./route/userRoute.js";
 import connectDB from "./config/db.js";
+import userRouter from "./route/userRoute.js";
 import providerRoute from "./route/providerRoutes.js";
+
 
 // initialize express app
 const app = express();

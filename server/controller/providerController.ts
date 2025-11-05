@@ -3,11 +3,16 @@ import fs from 'fs';
 import imagekit from '../config/imageKit';
 import User from '../model/User';
 import Service from '../model/service';
+import { UserDocument } from '../model/User';
 
 // Extend Express Request interface to include Multer file
 interface MulterRequest extends Request {
     file?: Express.Multer.File;
 }
+
+interface AuthenticatedRequest extends Request {
+    user?: UserDocument;
+  }
 
 // Change user role to provider
 export const changeRollToProvider = async (req: Request, res: Response) => {
@@ -87,3 +92,128 @@ export const addService = async (req: MulterRequest, res: Response) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
+// api to list provider services
+export const getProviderService = async (req: Request, res: Response) => {
+    try {
+        const user = req.user;
+        if (!req.user) {
+            return res.status(401).json({ success: false, message: 'User not authenticated' });
+        }
+
+        const _id  = req.user;
+        const service = await Service.find({provider: _id});
+        res.status(200).json({ success: true, service });
+    } catch (error) {
+        console.error('Error in getProviderService:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+}
+
+//api to toggle service availability
+export const toggleServiceAvailability = async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?._id; 
+      const { serviceId } = req.body;
+  
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Unauthorized" });
+      }
+  
+      const service = await Service.findById(serviceId);
+      if (!service) {
+        return res.status(404).json({ success: false, message: "Service not found" });
+      }
+  
+      if (service.title.toString() !== userId.toString()) {
+        return res.status(403).json({ success: false, message: "Not authorized" });
+      }
+  
+      service.availability = !service.availability;
+      await service.save();
+  
+      res.json({ success: true, service });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  };
+  
+
+//api to delete service
+export const deleteService = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?._id;
+      const { serviceId } = req.body;
+  
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Unauthorized" });
+      }
+  
+      // fetch the service first (do NOT update before ownership check)
+      const service = await Service.findById(serviceId).exec() as ServiceDocument | null;
+  
+      if (!service) {
+        return res.status(404).json({ success: false, message: "Service not found" });
+      }
+  
+      // --- Ownership check ---
+      // Adjust the field below to whatever field in your Service model stores the owner's user id:
+      // common names: owner, createdBy, user, seller, author, etc.
+      const ownerField = (service as any).owner ?? (service as any).createdBy ?? (service as any).user;
+  
+      if (!ownerField) {
+        // no owner field found on service model — treat as unauthorized / bad data
+        return res.status(400).json({ success: false, message: "Service owner not defined" });
+      }
+  
+      // ownerField may be an ObjectId or a string — compare as strings
+      if (ownerField.toString() !== userId.toString()) {
+        return res.status(403).json({ success: false, message: "You are not authorized to delete this service" });
+      }
+  
+      // --- Perform deletion or soft-delete ---
+      // Option A: Hard delete
+      // await service.remove();
+  
+      // Option B: Soft-delete (preserve doc but mark as inactive) — adjust fields to match your schema
+      service.title = null as any;
+      (service as any).isAvailable = false;
+      (service as any).deletedAt = new Date(); // optional
+      await service.save();
+  
+      return res.status(200).json({ success: true, message: "Service deleted", service });
+    } catch (error) {
+      console.error("Error in deleteService:", error);
+      return res.status(500).json({ success: false, message: "Server error" });
+    }
+  };
+
+//api to get dashboard data
+export const getDashboardData = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      // guard against missing user
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ success: false, message: "Unauthorized" });
+      }
+  
+      const userId = user._id;
+      const role = user.role;
+  
+      if (role !== "provider") {
+        return res.status(403).json({ success: false, message: "You are not authorized to get dashboard data" });
+      }
+  
+      // find services where provider field references this user
+      const services = await Service.find({ provider: userId }).exec();
+  
+      // you can also compute stats, counts, earnings, etc. example:
+      // const activeCount = services.filter(s => s.isAvailable).length;
+  
+      return res.status(200).json({ success: true, services });
+    } catch (error) {
+      console.error("Error in getDashboardData:", error);
+      return res.status(500).json({ success: false, message: "Server error" });
+    }
+  };
+
