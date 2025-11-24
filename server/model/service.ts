@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface ServiceDocument extends Document {
+    _id: mongoose.Types.ObjectId;
     provider: mongoose.Types.ObjectId;
     title: string;
     description: string;
