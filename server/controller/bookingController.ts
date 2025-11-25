@@ -1,8 +1,7 @@
 import Booking from "../model/Booking.js"
 import { Request, Response } from "express";
 import Service from "../model/service.js";
-import { error } from "console";
-import { populate } from "dotenv";
+
 
 //functiom to check if the service is available
 export const checkAvailability = async (serviceId: string, date: Date, time: string) => {

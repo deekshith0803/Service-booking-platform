@@ -13,6 +13,7 @@ import ManageService from "./pages/provider/ManageService";
 import AddService from "./pages/provider/AddService";
 import Login from "./components/Login";
 import ServiceCategory from "./pages/ServiceCategory";
+import { Toaster } from "react-hot-toast";
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -20,6 +21,8 @@ const App = () => {
 
   return (
     <>
+
+      <Toaster position="top-center"/>
 
       {showLogin && <Login setShowLogin={setShowLogin} />}
       {!isProvider && <Navbar setShowLogin={setShowLogin} />}

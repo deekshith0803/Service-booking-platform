@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import fs from 'fs';
-import imagekit from '../config/imageKit';
-import User from '../model/User';
-import Service from '../model/service';
-import { UserDocument } from '../model/User';
-import { ServiceDocument } from '../model/service';
-import Booking from '../model/Booking';
+import imagekit from '../config/imageKit.js';
+import User from '../model/User.js';
+import Service from '../model/service.js';
+import { UserDocument } from '../model/User.js';
+import { ServiceDocument } from '../model/service.js';
+import Booking from '../model/Booking.js';
 
 // Extend Express Request interface to include Multer file
 interface MulterRequest extends Request {
@@ -207,13 +207,82 @@ export const getDashboardData = async (req: AuthenticatedRequest, res: Response)
     }
 
     // find services where provider field references this user
-    const services = await Service.find({ provider: userId }).exec();
+    const services = await Service.find({ provider: userId })
+    const bookings = await Booking.find({ provider: userId })
+      .populate('service')
+      .sort({ date: -1 });
 
+    // find pending bookings  
+    const pendingBooking = await Booking.find({ provider: userId, status: "pending" })
+      .populate('service')
+      .sort({ date: -1 });
 
-    return res.status(200).json({ success: true, services });
+    // find completed bookings
+    const completedBooking = await Booking.find({ provider: userId, status: "comfirmed" })
+      .populate('service')
+      .sort({ date: -1 });
+
+    //calculate monthely earnings
+    const monthelyRevenue = bookings.slice()
+      .filter(booking => booking.status === "comfirmed")
+      .reduce((acc, booking) => acc + booking.price, 0 )
+
+      const dashboardData = {
+        totalServices: services.length,
+        totalBookings: bookings.length,
+        pendingBookings: pendingBooking.length,
+        completedBookings: completedBooking.length,
+        recentBookings: bookings.slice(0, 4),
+        monthelyRevenue,
+      };
+
+    return res.status(200).json({ success: true, dashboardData });
+
   } catch (error) {
     console.error("Error in getDashboardData:", error);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
+//api to update user image
+
+export const updateUserImage = async (req: MulterRequest, res: Response) => {
+  try {
+    const userId = req.user?._id;
+
+    const imageFile = req.file;
+    if (!imageFile) {
+      return res.status(400).json({ success: false, message: 'Image file is required' });
+    }
+
+    const fileBuffer = fs.readFileSync(imageFile.path);
+    const response = await imagekit.upload({
+      file: fileBuffer,
+      fileName: imageFile.originalname,
+      folder: '/users',
+    });
+
+    const optimizedImageUrl = imagekit.url({
+      path: response.filePath,
+      transformation: [
+        { width: '1200' },
+        { quality: '80' },
+        { format: 'webp' },
+      ],
+    });
+
+    const image = optimizedImageUrl;
+
+    await User.findByIdAndUpdate(
+      userId,
+      { image },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({ success: true, message: 'User image updated successfully' });
+
+  } catch (error) {
+    console.error("Error in updateUserImage:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+}

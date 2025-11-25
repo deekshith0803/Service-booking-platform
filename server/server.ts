@@ -6,29 +6,36 @@ import userRouter from "./route/userRoute.js";
 import providerRoute from "./route/providerRoutes.js";
 import bookingRouter from "./route/bookingRoutes.js";
 
-
-// initialize express app
 const app = express();
 
-// connect to database
-await connectDB();
+async function start() {
+  try {
+    // connect to database
+    await connectDB();
 
-// middleware
-app.use(cors());
-app.use(express.json());
+    // middleware
+    app.use(cors());
+    app.use(express.json());
 
-// test route
-app.get("/", (req, res) => {
-    res.send("Welcome to the Service Booking Platform API");
-});
+    // test route
+    app.get("/", (req, res) => {
+      res.send("Welcome to the Service Booking Platform API");
+    });
 
-// routes
-app.use("/api/user", userRouter);
-app.use("/api/provider", providerRoute)
-app.use("/api/bookings", bookingRouter)
+    // routes
+    app.use("/api/user", userRouter);
+    app.use("/api/provider", providerRoute);
+    app.use("/api/bookings", bookingRouter);
 
-// start the server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+    // start the server
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ Fatal startup error:", err);
+    process.exit(1);
+  }
+}
+
+start();

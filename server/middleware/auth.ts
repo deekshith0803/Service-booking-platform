@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import User, { UserDocument } from "../model/User";
+import User, { UserDocument } from "../model/User.js";
 
 // Extend Express Request interface
 declare global {

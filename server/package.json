@@ -5,7 +5,7 @@
   "main": "server.ts",
   "type": "module",
   "scripts": {
-    "dev": "nodemon",
+    "dev": "tsx watch server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
   },
@@ -29,9 +29,8 @@
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
-    "@types/node": "^24.3.0",
-    "nodemon": "^3.1.10",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "@types/node": "^24.10.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3"
   }
 }
