@@ -1,62 +1,136 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Title from "../components/Title";
-import { assets, dummyserviceData } from "../assets/assets";
+import { assets } from "../assets/assets";
 import ServiceCard from "../components/ServiceCard";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAppContext } from "../context/AppContext";
+import { motion } from "framer-motion";
 
 const Service = () => {
-  const [input, setInput] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const [input, setInput] = useState("");
+  const { service } = useAppContext();
+
+  // read ?search= from URL
+  const params = new URLSearchParams(location.search);
+  const searchQuery = params.get("search") || "";
+
+  useEffect(() => {
+    if (searchQuery) setInput(searchQuery);
+  }, [searchQuery]);
+
+  const services = Array.isArray(service) ? service : [];
+  const searchText = input.toLowerCase();
+
+  const filteredServices = services.filter((service) => {
+    if (!service?.title || !service?.category) return false;
+    return (
+      service.title.toLowerCase().includes(searchText) ||
+      service.category.toLowerCase().includes(searchText)
+    );
+  });
+
+  // motion variants
+  const container = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.08,
+      },
+    },
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: "easeOut" },
+    },
+  };
 
   return (
     <div>
+      {/* Back */}
       <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-10">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 mb-6 text-gray-500 cursor-pointer"
+          className="flex items-center gap-2 mb-6 text-gray-500"
         >
-          <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-65" />
+          <img
+            src={assets.arrow_icon}
+            alt="back"
+            className="rotate-180 opacity-65"
+          />
           Back
         </button>
       </div>
-      <div className="flex flex-col items-center py-20 bg-light max-md:px-4">
 
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="flex flex-col items-center py-20 bg-light max-md:px-4"
+      >
         <Title
           title="Services"
           subtitle="Discover the top-rated services from our trusted professionals."
         />
 
-        <div className="flex items-center bg-white px-4 mt-6 max-w-140 w-full h-12 rounded-full shadow">
+        {/* Search bar */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.15, duration: 0.4 }}
+          className="flex items-center bg-white px-4 mt-6 max-w-140 w-full h-12 rounded-full shadow"
+        >
           <img
             src={assets.search_icon}
             alt="search"
             className="w-4.5 h-4.5 mr-2"
           />
           <input
-            onChange={(e) => setInput(e.target.value)}
             value={input}
+            onChange={(e) => setInput(e.target.value)}
             type="text"
             placeholder="Search services"
             className="w-full outline-none h-full text-gray-500"
           />
           <img
             src={assets.filter_icon}
-            alt="search"
+            alt="filter"
             className="w-4.5 h-4.5 ml-2"
           />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
+
+      {/* Results */}
       <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-10">
         <p className="text-gray-500 xl:px-10 max-w-7xl mx-auto">
-          Showing {dummyserviceData.length} service
+          Showing {filteredServices.length} service
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-4 xl:px-10 max-w-7xl mx-auto">
-          {dummyserviceData.map((service, index) => (
-            <div key={index}>
-              <ServiceCard service={service} />
-            </div>
-          ))}
-        </div>
+
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-4 xl:px-10 max-w-7xl mx-auto"
+        >
+          {filteredServices.length === 0 ? (
+            <p className="text-gray-400 col-span-3 text-center">
+              No services found
+            </p>
+          ) : (
+            filteredServices.map((service) => (
+              <motion.div key={service._id} variants={item}>
+                <ServiceCard service={service} />
+              </motion.div>
+            ))
+          )}
+        </motion.div>
       </div>
     </div>
   );

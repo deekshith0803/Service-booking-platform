@@ -2,9 +2,9 @@ import { Request, Response } from 'express';
 import fs from 'fs';
 import imagekit from '../config/imageKit.js';
 import User from '../model/User.js';
-import Service from '../model/service.js';
+import Service from '../model/Service.js';
 import { UserDocument } from '../model/User.js';
-import { ServiceDocument } from '../model/service.js';
+import { ServiceDocument } from '../model/Service.js';
 import Booking from '../model/Booking.js';
 
 // Extend Express Request interface to include Multer file
@@ -45,72 +45,145 @@ export const changeRollToProvider = async (req: Request, res: Response) => {
 // Add a new service
 export const addService = async (req: MulterRequest, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ success: false, message: 'User not authenticated' });
+    // ---------- AUTH ----------
+    if (!req.user?._id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
     }
 
-    const { _id } = req.user;
-    if (req.user.role !== 'provider') {
-      return res.status(403).json({ success: false, message: 'Only providers can add services' });
+    if (req.user.role !== "provider") {
+      return res.status(403).json({
+        success: false,
+        message: "Only providers can add services",
+      });
     }
 
-    const serviceData = JSON.parse(req.body.service);
+    // ---------- SERVICE DATA ----------
+    let serviceData: any;
+    try {
+      serviceData =
+        typeof req.body.service === "string"
+          ? JSON.parse(req.body.service)
+          : req.body.service;
+    } catch {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid service data format",
+      });
+    }
+
+    // ---------- REQUIRED FIELD CHECK ----------
+    if (
+      !serviceData?.title ||
+      !serviceData?.description ||
+      !serviceData?.category ||
+      !serviceData?.pricePerHour ||
+      !serviceData?.serviceArea
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required service fields",
+      });
+    }
+
+    // ---------- IMAGE ----------
     const imageFile = req.file;
     if (!imageFile) {
-      return res.status(400).json({ success: false, message: 'Image file is required' });
+      return res.status(400).json({
+        success: false,
+        message: "Image file is required",
+      });
     }
 
     const fileBuffer = fs.readFileSync(imageFile.path);
-    const response = await imagekit.upload({
+
+    const uploadResponse = await imagekit.upload({
       file: fileBuffer,
       fileName: imageFile.originalname,
-      folder: '/services',
+      folder: "/services",
     });
 
     const optimizedImageUrl = imagekit.url({
-      path: response.filePath,
+      path: uploadResponse.filePath,
       transformation: [
-        { width: '1200' },
-        { quality: '80' },
-        { format: 'webp' },
+        { width: "1200" },
+        { quality: "80" },
+        { format: "webp" },
       ],
     });
 
+    // ---------- CREATE SERVICE (EXPLICIT MAPPING) ----------
     const service = await Service.create({
-      ...serviceData,
-      provider: _id,
+      provider: req.user._id,
+
+      title: serviceData.title,
+      description: serviceData.description,
+      category: serviceData.category,
+
+      price: serviceData.pricePerHour,          // 🔥 mapped
+      service_area: serviceData.serviceArea,    // 🔥 mapped
+
+      staffCount: serviceData.staffCount ?? 1,
+      toolProvided: serviceData.toolsProvided ?? false,
+
       image: optimizedImageUrl,
     });
 
-    try {
-      fs.unlinkSync(imageFile.path);
-    } catch (unlinkError) {
-      console.warn('Failed to delete temporary file:', unlinkError);
+    // ---------- CLEANUP ----------
+    fs.unlink(imageFile.path, () => { });
+
+    return res.status(201).json({
+      success: true,
+      message: "Service added successfully",
+      service,
+    });
+
+  } catch (error: any) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: "Service validation failed",
+        errors: Object.keys(error.errors),
+      });
     }
 
-    res.status(201).json({ success: true, message: 'Service added successfully', service });
-  } catch (error) {
-    console.error('Error in addService:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Error in addService:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
 
+
 // api to list provider services
-export const getProviderService = async (req: Request, res: Response) => {
+export const getProviderService = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const user = req.user;
-    if (!req.user) {
-      return res.status(401).json({ success: false, message: 'User not authenticated' });
+    if (!req.user?._id) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
     }
 
-    const _id = req.user;
-    const service = await Service.find({ provider: _id });
-    res.status(200).json({ success: true, service });
+    const services = await Service.find({
+      provider: req.user._id,
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      service: services,
+    });
   } catch (error) {
-    console.error('Error in getProviderService:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Error in getProviderService:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
-}
+};
 
 //api to toggle service availability
 export const toggleServiceAvailability = async (req: Request, res: Response) => {
@@ -127,18 +200,24 @@ export const toggleServiceAvailability = async (req: Request, res: Response) => 
       return res.status(404).json({ success: false, message: "Service not found" });
     }
 
-    if (service.title.toString() !== userId.toString()) {
+    if (service.provider.toString() !== userId.toString()) {
       return res.status(403).json({ success: false, message: "Not authorized" });
     }
 
     service.availability = !service.availability;
     await service.save();
 
-    res.json({ success: true, service });
+    res.status(200).json({
+      success: true,
+      message: "Service availability updated",
+      service,
+    });
   } catch (error) {
+    console.error("toggleServiceAvailability:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 
 //api to delete service
@@ -151,101 +230,107 @@ export const deleteService = async (req: AuthenticatedRequest, res: Response) =>
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    // fetch the service first (do NOT update before ownership check)
-    const service = await Service.findById(serviceId).exec() as ServiceDocument | null;
-
+    const service = await Service.findById(serviceId);
     if (!service) {
       return res.status(404).json({ success: false, message: "Service not found" });
     }
 
-    // --- Ownership check ---
-    // Adjust the field below to whatever field in your Service model stores the owner's user id:
-    // common names: owner, createdBy, user, seller, author, etc.
-    const ownerField = (service as any).owner ?? (service as any).createdBy ?? (service as any).user;
-
-    if (!ownerField) {
-      // no owner field found on service model — treat as unauthorized / bad data
-      return res.status(400).json({ success: false, message: "Service owner not defined" });
+    if (service.provider.toString() !== userId.toString()) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
     }
 
-    // ownerField may be an ObjectId or a string — compare as strings
-    if (ownerField.toString() !== userId.toString()) {
-      return res.status(403).json({ success: false, message: "You are not authorized to delete this service" });
-    }
+    await Service.findByIdAndDelete(serviceId);
 
-    // --- Perform deletion or soft-delete ---
-    // Option A: Hard delete
-    // await service.remove();
-
-    // Option B: Soft-delete (preserve doc but mark as inactive) — adjust fields to match your schema
-    service.title = null as any;
-    (service as any).isAvailable = false;
-    (service as any).deletedAt = new Date(); // optional
-    await service.save();
-
-    return res.status(200).json({ success: true, message: "Service deleted", service });
+    return res.status(200).json({
+      success: true,
+      message: "Service deleted successfully",
+    });
   } catch (error) {
-    console.error("Error in deleteService:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    console.error("deleteService:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-//api to get dashboard data
-export const getDashboardData = async (req: AuthenticatedRequest, res: Response) => {
+
+// api to get dashboard data
+export const getDashboardData = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
-    // guard against missing user
+    // ---------- AUTH ----------
     const user = req.user;
     if (!user) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    if (user.role !== "provider") {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to access dashboard data",
+      });
     }
 
     const userId = user._id;
-    const role = user.role;
 
-    if (role !== "provider") {
-      return res.status(403).json({ success: false, message: "You are not authorized to get dashboard data" });
-    }
+    // ---------- FETCH DATA ----------
+    const services = await Service.find({ provider: userId });
 
-    // find services where provider field references this user
-    const services = await Service.find({ provider: userId })
     const bookings = await Booking.find({ provider: userId })
-      .populate('service')
-      .sort({ date: -1 });
+      .populate("service")
+      .sort({ createdAt: -1 });
 
-    // find pending bookings  
-    const pendingBooking = await Booking.find({ provider: userId, status: "pending" })
-      .populate('service')
-      .sort({ date: -1 });
+    // ---------- COUNTS ----------
+    const pendingBookings = bookings.filter(
+      (b) => b.status === "pending"
+    );
 
-    // find completed bookings
-    const completedBooking = await Booking.find({ provider: userId, status: "comfirmed" })
-      .populate('service')
-      .sort({ date: -1 });
+    const completedBookings = bookings.filter(
+      (b) => b.status === "confirmed"
+    );
 
-    //calculate monthely earnings
-    const monthelyRevenue = bookings.slice()
-      .filter(booking => booking.status === "comfirmed")
-      .reduce((acc, booking) => acc + booking.price, 0 )
+    // ---------- MONTHLY REVENUE ----------
+    const now = new Date();
 
-      const dashboardData = {
-        totalServices: services.length,
-        totalBookings: bookings.length,
-        pendingBookings: pendingBooking.length,
-        completedBookings: completedBooking.length,
-        recentBookings: bookings.slice(0, 4),
-        monthelyRevenue,
-      };
+    const monthlyRevenue = completedBookings
+      .filter((b) => {
+        const created = new Date(b.createdAt);
+        return (
+          created.getMonth() === now.getMonth() &&
+          created.getFullYear() === now.getFullYear()
+        );
+      })
+      .reduce((sum, b) => sum + b.price, 0);
 
-    return res.status(200).json({ success: true, dashboardData });
+    // ---------- RESPONSE ----------
+    const dashboardData = {
+      totalServices: services.length,
+      totalBookings: bookings.length,
+      pendingBookings: pendingBookings.length,
+      completedBookings: completedBookings.length,
+      recentBookings: bookings.slice(0, 4),
+      monthlyRevenue,
+    };
+
+    return res.status(200).json({
+      success: true,
+      dashboardData,
+    });
 
   } catch (error) {
     console.error("Error in getDashboardData:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
 
-//api to update user image
 
+//api to update user image
 export const updateUserImage = async (req: MulterRequest, res: Response) => {
   try {
     const userId = req.user?._id;

@@ -1,68 +1,164 @@
 import React, { useState } from "react";
 import { assets, menuLinks } from "../assets/assets";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
-const Navbar = ({ setShowLogin }) => {
+const Navbar = () => {
+  const {
+    setShowLogin,
+    user,
+    logout,
+    isProvider,
+    setIsProvider,
+    axios,
+  } = useAppContext();
+
   const location = useLocation();
-  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const changeRole = async () => {
+    try {
+      const { data } = await axios.post("/api/provider/change-role");
+      if (data.success) {
+        setIsProvider(true);
+        toast.success(data.message);
+      } else {
+        toast.error(data.message || "Unable to change role");
+      }
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.message ||
+        err?.message ||
+        "Something went wrong"
+      );
+    }
+  };
+
+  const handleSearch = (e) => {
+    if (e.key === "Enter" && search.trim()) {
+      navigate(`/services?search=${encodeURIComponent(search.trim())}`);
+      setSearch("");
+      setOpen(false);
+    }
+  };
+
   return (
-    <div
-      className={`flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 text-gray-600 border-b border-borderColor relative transition-all duration-300 z-50 ${location.pathname === "/" ? "bg-light" : "bg-white"},`}
+    <motion.header
+      initial={{ opacity: 0, y: -24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className={`sticky top-0 left-0 w-full z-50 border-b border-borderColor
+      ${location.pathname === "/" ? "bg-light" : "bg-white"}`}
     >
-      {/* Logo */}
-      <Link to="/" onClick={() => setOpen(false)}>
-        <img src={assets.logo} alt="logo" className="h-8" />
-      </Link>
+      <div className="flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4">
 
-      {/* Menu */}
-      <div
-        className={`max-sm:fixed max-sm:h-screen max-sm:w-full max-sm:top-16 max-sm:border-t border-borderColor max-sm:right-0 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 max-sm:p-4 transition-all duration-300 z-50 ${location.pathname === "/" ? "bg-light" : "bg-white"} ${open ? "max-sm:translate-x-0" : "max-sm:-translate-x-full"}`}
-      >
-        {menuLinks.map((link, index) => (
-          <Link key={index} onClick={() => setOpen(false(false))} to={link.path}>
-            {link.name}
-          </Link>
-        ))}
-
-        {/* Search Bar */}
-        <div className="hidden lg:flex items-center gap-2 text-sm border border-borderColor px-4 py-1 rounded-full">
-          <input
-            type="text"
-            className="py-1.5 w-full bg-transparent outline-none placeholder-gray-600"
-            placeholder="Search"
+        {/* Logo */}
+        <Link to="/" onClick={() => setOpen(false)}>
+          <motion.img
+            src={assets.logo}
+            alt="logo"
+            className="h-8"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.2 }}
           />
-          <img src={assets.search_icon} alt="Search" />
+        </Link>
+
+        {/* Desktop Menu */}
+        <div className="hidden sm:flex items-center gap-8">
+          {menuLinks.map((link, index) => (
+            <motion.div
+              key={index}
+              whileHover={{ y: -2 }}
+              transition={{ duration: 0.15 }}
+            >
+              <Link to={link.path}>{link.name}</Link>
+            </motion.div>
+          ))}
+
+          {/* Search */}
+          <div className="hidden lg:flex items-center gap-2 text-sm border border-borderColor px-4 py-1 rounded-full">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={handleSearch}
+              placeholder="Search services"
+              className="py-1.5 w-full bg-transparent outline-none"
+            />
+            <img src={assets.search_icon} alt="search" />
+          </div>
+
+          {/* Actions */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            onClick={() =>
+              isProvider ? navigate("/provider") : changeRole()
+            }
+          >
+            {isProvider ? "Dashboard" : "List your service"}
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            onClick={() => (user ? logout() : setShowLogin(true))}
+            className="px-8 py-2 bg-primary text-white rounded-full"
+          >
+            {user ? "Logout" : "Login"}
+          </motion.button>
         </div>
 
-        {/* Buttons */}
-        <div className="flex max-sm:flex-col items-start sm:items-center gap-6">
-          <button
-            onClick={() => navigate("/provider")}
-            className="cursor-pointer"
-          >
-            Dashboard
-          </button>
-
-          <button
-            onClick={() => setShowLogin(true)}
-            className="cursor-pointer px-8 py-2 bg-primary hover:bg-primary-dull transition-all duration-300 text-white rounded-full"
-          >
-            Login
-          </button>
-        </div>
+        {/* Mobile Menu Button */}
+        <button className="sm:hidden" onClick={() => setOpen(!open)}>
+          <img src={open ? assets.close_icon : assets.menu_icon} alt="menu" />
+        </button>
       </div>
 
-      {/* Hamburger menu icon for mobile */}
-      <button
-        className="sm:hidden cursor-pointer"
-        aria-label="Menu"
-        onClick={() => setOpen(!open)}
-      >
-        <img src={open ? assets.close_icon : assets.menu_icon} alt="Menu" />
-      </button>
-    </div>
+      {/* Mobile Menu Panel */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className={`sm:hidden fixed top-16 right-0 h-screen w-full p-6
+            ${location.pathname === "/" ? "bg-light" : "bg-white"}`}
+          >
+            <div className="flex flex-col gap-6">
+              {menuLinks.map((link, index) => (
+                <Link
+                  key={index}
+                  to={link.path}
+                  onClick={() => setOpen(false)}
+                >
+                  {link.name}
+                </Link>
+              ))}
+
+              <button
+                onClick={() =>
+                  isProvider ? navigate("/provider") : changeRole()
+                }
+              >
+                {isProvider ? "Dashboard" : "List your service"}
+              </button>
+
+              <button
+                onClick={() => (user ? logout() : setShowLogin(true))}
+                className="px-8 py-2 bg-primary text-white rounded-full"
+              >
+                {user ? "Logout" : "Login"}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.header>
   );
 };
 

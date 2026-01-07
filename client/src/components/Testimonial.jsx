@@ -1,6 +1,7 @@
 import React from "react";
 import Title from "./Title";
 import { assets } from "../assets/assets";
+import { motion } from "framer-motion";
 
 const Testimonial = () => {
   const testimonials = [
@@ -28,16 +29,28 @@ const Testimonial = () => {
   ];
 
   return (
-    <div className="py-28 px-6 md:px-16 lg:px-14 xl:px-44">
+    <motion.div
+      className="py-28 px-6 md:px-16 lg:px-14 xl:px-44"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
       <Title
         title="What our customers say"
         subtitle="Hear how Fixora is making service booking simple, fast, and reliable."
       />
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-18">
         {testimonials.map((testimonial, index) => (
-          <div
+          <motion.div
             key={index}
-            className="bg-white p-6 rounded-xl shadow-lg hover:translate-y-1 hover:shadow-2xl transition-all duration-500"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: "easeOut", delay: index * 0.08 }}
+            whileHover={{ y: -4 }}
+            className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl"
           >
             <div className="flex items-center gap-3">
               <img
@@ -46,29 +59,35 @@ const Testimonial = () => {
                 alt={testimonial.name}
               />
               <div>
-                <p className="font-playfair text-xl">{testimonial.name}</p>
-                <p className="text-gray-500">{testimonial.location}</p>
+                <p className="font-playfair text-xl">
+                  {testimonial.name}
+                </p>
+                <p className="text-gray-500">
+                  {testimonial.location}
+                </p>
               </div>
             </div>
+
             <div className="flex items-center gap-1 mt-4">
               {Array(5)
                 .fill(0)
-                .map((_, index) => (
+                .map((_, i) => (
                   <img
-                    key={index}
+                    key={i}
                     src={assets.star_icon}
                     alt="Star"
                     className="w-4 h-4"
                   />
                 ))}
             </div>
+
             <p className="text-gray-500 max-w-90 mt-4 font-light">
-              "{testimonial.testimonial}"
+              “{testimonial.testimonial}”
             </p>
-          </div>
+          </motion.div>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

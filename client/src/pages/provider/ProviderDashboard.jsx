@@ -1,31 +1,50 @@
 import { useEffect, useState } from 'react'
 import { assets, dummyDashboardData } from '../../assets/assets'
 import Title from '../../components/provider/Tittl'
+import { useAppContext } from '../../context/AppContext';
+import toast from 'react-hot-toast';
 
 const ProviderDashboard = () => {
 
-    const currency = import.meta.env.VITE_CURRENCY
+    const { isProvider, axios, currency } = useAppContext();
 
     const [data, setData] = useState({
-        totalService: 0,
+        totalServices: 0,
         totalBookings: 0,
         pendingBookings: 0,
         completedBookings: 0,
         recentBookings: [],
-        monthlyRevenue: 0,
-    })
+        monthelyRevenue: 0,
+    });
 
 
     const dashboardcard = [
-        { title: 'Total Services', value: data.totalService, icon: assets.serviceIconColored },
+        { title: 'Total Services', value: data.totalServices, icon: assets.serviceIconColored },
         { title: 'Total Bookings', value: data.totalBookings, icon: assets.listIconColored },
-        { title: 'Pending Bookings', value: data.pendingBookings, icon: assets.cautionIconColored },
-        { title: 'Completed Bookings', value: data.completedBookings, icon: assets.listIconColored },
-    ]
+        { title: 'Pending', value: data.pendingBookings, icon: assets.cautionIconColored },
+        { title: 'confirmed', value: data.completedBookings, icon: assets.listIconColored },
+    ];
+
+
+    const fetchDashboardData = async () => {
+        try {
+            const { data } = await axios.get('/api/provider/dashboard');
+            if (data.success) {
+                setData(data.dashboardData);
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            console.log("Error fetching dashboard data", error);
+            toast.error(error.message);
+        }
+    }
 
     useEffect(() => {
-        setData(dummyDashboardData)
-    }, [])
+        if (isProvider) {
+            fetchDashboardData();
+        }
+    }, [isProvider])
 
     return (
         <div className='px-4 pt-10 md:px-10 flex-1'>
@@ -56,7 +75,7 @@ const ProviderDashboard = () => {
                                 </div>
                                 <div>
                                     <h1 className='text-sm font-semibold'>{booking.service.title}</h1>
-                                    <p className='text-sm text-gray-500'>{booking.bookedAt.split('T')[0]}</p>
+                                    <p className='text-sm text-gray-500'>{booking.createdAt.split('T')[0]}</p>
                                 </div>
                             </div>
                             <div className='flex items-center gap-2 font-medium'>
@@ -70,7 +89,9 @@ const ProviderDashboard = () => {
                 <div className='p-4 md:p-6 mb-6 border border-borderColor rounded-md w-full md:max-w-xs'>
                     <h1 className='text-lg font-medium'>Monthly Revenue</h1>
                     <p className='text-gray-500'>Revenue for current month</p>
-                    <p className='text-3xl mt-6 font-semibold text-primary'>{currency}{data.monthlyRevenue}</p>
+                    <p className='text-3xl mt-6 font-semibold text-primary'>
+                        {currency}{data.monthlyRevenue}
+                    </p>
                 </div>
             </div>
         </div>

@@ -2,27 +2,72 @@ import React, { useState } from 'react'
 import Title from '../../components/provider/Tittl'
 import { assets } from '../../assets/assets'
 import { serviceCategories } from '../../assets/assets'
+import { useAppContext } from '../../context/AppContext'
+import toast from 'react-hot-toast'
 
 const AddService = () => {
-    const currency = import.meta.env.VITE_CURRENCY
+
+    const { axios, currency } = useAppContext();
 
     const [image, setImage] = useState(null)
     const [service, setService] = useState({
-        image: null,
-        title: '',
-        description: '',
-        category: '',
-        pricePerHour: '',
-        serviceArea: '',
+        title: "",
+        description: "",
+        category: "",
+        pricePerHour: "",
+        serviceArea: "",
         staffCount: 1,
-        duration: '',
+        duration: "",
         toolsProvided: false,
     })
+    const [isLoading, setIsLoading] = useState(false)
+    const onSubmitHandler = async (e) => {
+        e.preventDefault();
+        if (isLoading) return;
 
-    const onSubmitHandler = (e) => {
-        e.preventDefault()
-        console.log(service)
-    }
+        if (!image) {
+            toast.error("Please upload an image");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const formData = new FormData();
+
+            formData.append("image", image);
+            formData.append("service", JSON.stringify(service));
+            const { data } = await axios.post(
+                "/api/provider/add-service",
+                formData,
+                { withCredentials: true }
+            );
+
+            if (data.success) {
+                toast.success(data.message);
+
+                setImage(null);
+                setService({
+                    title: "",
+                    description: "",
+                    category: "",
+                    pricePerHour: "",
+                    serviceArea: "",
+                    staffCount: 1,
+                    duration: "",
+                    toolsProvided: false,
+                });
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(
+                error?.response?.data?.message || "Something went wrong"
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
 
     return (
         <div className="px-4 py-10 md:px-10 flex-1">
@@ -171,7 +216,7 @@ const AddService = () => {
                         className="flex items-center gap-2 px-4 py-2.5 mt-4 bg-primary text-white rounded-md font-medium w-max cursor-pointer"
                     >
                         <img src={assets.tick_icon} alt="" />
-                        List Your Service
+                        {isLoading ? "Listing Your Service..." : "List Your Service"}
                     </button>
                 </div>
             </form>

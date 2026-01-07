@@ -14,32 +14,35 @@ import AddService from "./pages/provider/AddService";
 import Login from "./components/Login";
 import ServiceCategory from "./pages/ServiceCategory";
 import { Toaster } from "react-hot-toast";
+import { useAppContext } from "./context/AppContext";
 
 const App = () => {
-  const [showLogin, setShowLogin] = useState(false);
+
+  const { showLogin } = useAppContext();
+
   const isProvider = useLocation().pathname.startsWith("/provider");
 
   return (
     <>
 
-      <Toaster position="top-center"/>
+      <Toaster position="top-center" />
 
-      {showLogin && <Login setShowLogin={setShowLogin} />}
-      {!isProvider && <Navbar setShowLogin={setShowLogin} />}
+      {showLogin && <Login />}
+      {!isProvider && <Navbar />}
 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/service-details/:id" element={<Servicedetails />} />
+        <Route path="/services" element={<Service />} />
         <Route path="/service/:category" element={<ServiceCategory />} />
-        <Route path="/service" element={<Service />} />
+        <Route path="/service-details/:id" element={<Servicedetails />} />
         <Route path="/my-bookings" element={<MyBooking />} />
+
         <Route path="/provider" element={<Layout />}>
-          <Route path="" element={<ProviderDashboard />} />
+          <Route index element={<ProviderDashboard />} />
           <Route path="manage-bookings" element={<ManageBookings />} />
           <Route path="manage-service" element={<ManageService />} />
           <Route path="add-service" element={<AddService />} />
         </Route>
-
       </Routes>
 
       {!isProvider && <Footer />}

@@ -1,23 +1,37 @@
 import React, { useState } from 'react'
-import { assets, dummyUserData, providerMenuLinks } from '../../assets/assets'
+import { assets, providerMenuLinks } from '../../assets/assets'
 import { NavLink, useLocation } from 'react-router-dom';
+import { useAppContext } from '../../context/AppContext';
+import toast from 'react-hot-toast';
 
 const SideBar = () => {
 
-    const user = dummyUserData;
+    const { user, axios, fetchUser } = useAppContext();
     const location = useLocation();
     const [image, setImage] = useState('');
 
     const updateImage = async () => {
-        user.image = URL.createObjectURL(image);
-        setImage('');
+        try {
+            const formData = new FormData();
+            formData.append('image', image);
+            const { data } = await axios.post('/api/provider/update-image', formData);
+            if (data?.success) {
+                fetchUser();
+                toast.success(data?.message);
+                setImage('');
+            } else {
+                toast.error(data?.message);
+            }
+        } catch (error) {
+            toast.error(error.message);
+        }
     }
 
     return (
         <div className='relative min-h-screen md:flex flex-col items-center pt-8 max-w-13 md:max-w-60 w-full border-r border-borderColor text-sm'>
             <div className='group relative'>
                 <label htmlFor="image">
-                    <img className='h-9 md:h-14 w-9 md:w-14 rounded-full mx-auto' src={image ? URL.createObjectURL(image) : user?.image || "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.vecteezy.com%2Ffree-vector%2Fprofile-pic&psig=AOvVaw2_SIAGHy2KxVDdMeksSUGA&ust=1753201293093000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCMDs1_etzo4DFQAAAAAdAAAAABAE"} alt="" />
+                    <img className='h-9 md:h-14 w-9 md:w-14 rounded-full mx-auto' src={image ? URL.createObjectURL(image) : user?.image || "https://i.pinimg.com/736x/59/af/9c/59af9cd100daf9aa154cc753dd58316d.jpg"} alt="" />
                     <input type="file" id='image' accept='image/*' hidden onChange={e => setImage(e.target.files[0])} />
                     <div className='absolute hidden top-0 left-0 bottom-0 bg-black/10 rounded-full group-hover:flex items-center justify-center cursor-pointer' >
                         <img src={assets.edit_icon} alt="" />

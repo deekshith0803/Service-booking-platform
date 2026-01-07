@@ -1,38 +1,62 @@
 import React from "react";
 import Title from "./Title";
-import { assets, dummyserviceData } from "../assets/assets";
+import { assets } from "../assets/assets";
 import ServiceCard from "./ServiceCard";
 import { useNavigate } from "react-router-dom";
+import { useAppContext } from "../context/AppContext";
+import { motion } from "framer-motion";
 
 const FeaturedSection = () => {
   const navigate = useNavigate();
+  const { service = [] } = useAppContext();
 
   return (
-    <div className="flex flex-col items-center py-24 px-6 md:px-16 lg:px-24 xl:px-32">
-      <div>
-        <Title
-          title="Featured Services"
-          subtitle="Discover the top-rated services from our trusted professionals."
-          align="center"
-        />
-      </div>
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="flex flex-col items-center py-24 px-6 md:px-16 lg:px-24 xl:px-32"
+    >
+      <Title
+        title="Featured Services"
+        subtitle="Discover the top-rated services from our trusted professionals."
+        align="center"
+      />
+
+      {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-18">
-        {dummyserviceData.slice(0, 3).map((service) => (
-          <div key={service._id}>
-            <ServiceCard service={service} />
-          </div>
+        {service.slice(0, 3).map((item) => (
+          <motion.div
+            key={item._id}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            whileHover={{ scale: 1.02 }}   // very subtle
+          >
+            <ServiceCard service={item} />
+          </motion.div>
         ))}
       </div>
-      <button
+
+
+      <motion.button
         onClick={() => {
           navigate("/services");
-          scrollTop(0, 0);
+          window.scrollTo(0, 0);
         }}
-        className="flex items-center justify-center gap-2 py-2 border border-borderColor hower:bg-gray-100 rounded-md mt-18 curser-pointer"
+        whileHover={{ opacity: 0.85 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ duration: 0.25 }}
+        className="flex items-center justify-center gap-2 py-2 px-4
+          border border-borderColor hover:bg-gray-100
+          rounded-md mt-18 cursor-pointer"
       >
-        Explore all services <img src={assets.arrow_icon} alt="arrow" />
-      </button>
-    </div>
+        Explore all services
+        <img src={assets.arrow_icon} alt="arrow" />
+      </motion.button>
+    </motion.div>
   );
 };
 

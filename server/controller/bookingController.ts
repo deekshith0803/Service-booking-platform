@@ -1,6 +1,6 @@
 import Booking from "../model/Booking.js"
 import { Request, Response } from "express";
-import Service from "../model/service.js";
+import Service from "../model/Service.js";
 
 
 //functiom to check if the service is available
