@@ -74,6 +74,26 @@ export const getUserData = async (req: AuthenticatedRequest, res: Response) => {
 
 // SERVICES
 export const getAllServices = async (req: Request, res: Response) => {
-  const services = await Service.find({ availability: true });
-  res.json({ success: true, services });
+  try {
+    const { category } = req.query;
+
+    const filter: Record<string, any> = {
+      availability: true,
+    };
+
+    if (category) {
+      filter.category = new RegExp(`^${category}$`, "i");
+    }
+
+    const services = await Service.find(filter);
+
+    res.json({ success: true, services });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch services",
+    });
+  }
 };
+
+
