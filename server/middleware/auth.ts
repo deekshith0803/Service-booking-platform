@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import User, { UserDocument } from "../model/User.js";
 
-// Extend Express Request interface
 declare global {
     namespace Express {
         interface Request {
@@ -10,28 +9,57 @@ declare global {
         }
     }
 }
+
 interface DecodedToken extends JwtPayload {
     id: string;
-  }
+}
 
-
-export const protect = async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization;
-    if (!token) {
-        return res.status(401).json({ success: false, message: "No token, authorization denied" });
-    }
+export const protect = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
     try {
-        const userId = jwt.verify(token, process.env.JWT_SECRET as string);
+        const authHeader = req.headers.authorization;
 
-        console.log(userId);
-
-        if (!userId) {
-            return res.status(401).json({ success: false, message: "Token is not valid" });
+        // 1️⃣ Check header
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({
+                success: false,
+                message: "No token, authorization denied",
+            });
         }
-        req.user = await User.findById(userId).select("-password");
+
+        // 2️⃣ Extract token ONLY
+        const token = authHeader.split(" ")[1];
+
+        // 3️⃣ Verify token
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_SECRET as string
+        ) as DecodedToken;
+
+        // 4️⃣ Get user
+        const user = await User.findById(decoded.id).select("-password");
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        // 5️⃣ Attach user to request
+        req.user = user;
         next();
-    } catch (error) {
-        console.error("Something wrong with auth middleware");
-        res.status(500).json({ success: false, message: "Server Error" });
     }
-} 
+
+
+    catch (error) {
+        console.error("Auth middleware error:", error);
+        return res.status(401).json({
+            success: false,
+            message: "Token is not valid",
+        });
+    }
+};

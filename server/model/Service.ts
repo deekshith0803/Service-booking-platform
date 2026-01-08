@@ -48,7 +48,7 @@ const serviceSchema = new Schema<ServiceDocument>(
             default: "",
         },
 
-        isAvailable: {
+        availability: {
             type: Boolean,
             default: true,
         },
