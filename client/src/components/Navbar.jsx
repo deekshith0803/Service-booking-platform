@@ -13,6 +13,7 @@ const Navbar = () => {
     isProvider,
     setIsProvider,
     axios,
+    fetchUser,
   } = useAppContext();
 
   const location = useLocation();
@@ -25,8 +26,8 @@ const Navbar = () => {
     try {
       const { data } = await axios.post("/api/provider/change-role");
       if (data.success) {
-        setIsProvider(true);
-        toast.success(data.message);
+        toast.success("Request sent to admin for approval");
+        fetchUser(); // Refresh user data
       } else {
         toast.error(data.message || "Unable to change role");
       }
@@ -70,38 +71,59 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <div className="hidden sm:flex items-center gap-8">
-          {menuLinks.map((link, index) => (
-            <motion.div
-              key={index}
-              whileHover={{ y: -2 }}
-              transition={{ duration: 0.15 }}
-            >
-              <Link to={link.path}>{link.name}</Link>
-            </motion.div>
-          ))}
+          {user?.email === "deekshithm321@gmail.com" ? (
+            <>
+              <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }}>
+                <Link to="/admin?tab=stats">Stats</Link>
+              </motion.div>
+              <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }}>
+                <Link to="/admin?tab=users">Users</Link>
+              </motion.div>
+              <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }}>
+                <Link to="/admin?tab=providers">Providers</Link>
+              </motion.div>
+              <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }}>
+                <Link to="/admin?tab=bookings">Bookings</Link>
+              </motion.div>
+            </>
+          ) : (
+            menuLinks.map((link, index) => (
+              <motion.div
+                key={index}
+                whileHover={{ y: -2 }}
+                transition={{ duration: 0.15 }}
+              >
+                <Link to={link.path}>{link.name}</Link>
+              </motion.div>
+            ))
+          )}
 
           {/* Search */}
-          <div className="hidden lg:flex items-center gap-2 text-sm border border-borderColor px-4 py-1 rounded-full">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={handleSearch}
-              placeholder="Search services"
-              className="py-1.5 w-full bg-transparent outline-none"
-            />
-            <img src={assets.search_icon} alt="search" />
-          </div>
+          {user?.email !== "deekshithm321@gmail.com" && (
+            <div className="hidden lg:flex items-center gap-2 text-sm border border-borderColor px-4 py-1 rounded-full">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={handleSearch}
+                placeholder="Search services"
+                className="py-1.5 w-full bg-transparent outline-none"
+              />
+              <img src={assets.search_icon} alt="search" />
+            </div>
+          )}
 
           {/* Actions */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            onClick={() =>
-              isProvider ? navigate("/provider") : changeRole()
-            }
-          >
-            {isProvider ? "Dashboard" : "List your service"}
-          </motion.button>
+          {user?.email !== "deekshithm321@gmail.com" && (
+            <motion.button
+              whileHover={!user?.isProviderRequested ? { scale: 1.05 } : {}}
+              disabled={user?.isProviderRequested && !isProvider}
+              onClick={() => (isProvider ? navigate("/provider") : changeRole())}
+              className={user?.isProviderRequested && !isProvider ? "opacity-50 cursor-not-allowed" : ""}
+            >
+              {isProvider ? "Dashboard" : user?.isProviderRequested ? "Pending Approval" : "List your service"}
+            </motion.button>
+          )}
 
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -130,26 +152,42 @@ const Navbar = () => {
             ${location.pathname === "/" ? "bg-light" : "bg-white"}`}
           >
             <div className="flex flex-col gap-6">
-              {menuLinks.map((link, index) => (
-                <Link
-                  key={index}
-                  to={link.path}
-                  onClick={() => setOpen(false)}
+              {user?.email === "deekshithm321@gmail.com" ? (
+                <>
+                  <Link to="/admin?tab=stats" onClick={() => setOpen(false)}>Stats</Link>
+                  <Link to="/admin?tab=users" onClick={() => setOpen(false)}>Users</Link>
+                  <Link to="/admin?tab=providers" onClick={() => setOpen(false)}>Providers</Link>
+                  <Link to="/admin?tab=bookings" onClick={() => setOpen(false)}>Bookings</Link>
+                </>
+              ) : (
+                menuLinks.map((link, index) => (
+                  <Link
+                    key={index}
+                    to={link.path}
+                    onClick={() => setOpen(false)}
+                  >
+                    {link.name}
+                  </Link>
+                ))
+              )}
+
+              {user?.email !== "deekshithm321@gmail.com" && (
+                <button
+                  disabled={user?.isProviderRequested && !isProvider}
+                  onClick={() =>
+                    isProvider ? (navigate("/provider"), setOpen(false)) : changeRole()
+                  }
+                  className={user?.isProviderRequested && !isProvider ? "opacity-50" : ""}
                 >
-                  {link.name}
-                </Link>
-              ))}
+                  {isProvider ? "Dashboard" : user?.isProviderRequested ? "Pending Approval" : "List your service"}
+                </button>
+              )}
 
               <button
-                onClick={() =>
-                  isProvider ? navigate("/provider") : changeRole()
-                }
-              >
-                {isProvider ? "Dashboard" : "List your service"}
-              </button>
-
-              <button
-                onClick={() => (user ? logout() : setShowLogin(true))}
+                onClick={() => {
+                  user ? logout() : setShowLogin(true);
+                  setOpen(false);
+                }}
                 className="px-8 py-2 bg-primary text-white rounded-full"
               >
                 {user ? "Logout" : "Login"}

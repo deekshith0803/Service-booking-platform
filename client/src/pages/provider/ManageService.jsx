@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { assets } from "../../assets/assets";
 import Title from "../../components/provider/Tittl";
 import { useAppContext } from "../../context/AppContext";
@@ -6,6 +7,7 @@ import toast from "react-hot-toast";
 
 const ManageService = () => {
     const { isProvider, axios, currency } = useAppContext();
+    const navigate = useNavigate();
 
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -132,7 +134,7 @@ const ManageService = () => {
 
                                 <td className="p-3">
                                     {currency}
-                                    {service.price}/hour
+                                    {service.price}
                                 </td>
 
                                 <td className="p-3 max-md:hidden">
@@ -146,7 +148,14 @@ const ManageService = () => {
                                     </span>
                                 </td>
 
-                                <td className="flex items-center gap-3 p-3">
+                                <td className="flex items-center gap-4 p-3">
+                                    <img
+                                        onClick={() => navigate(`/provider/edit-service/${service._id}`)}
+                                        src={assets.edit_icon}
+                                        alt="Edit"
+                                        className="cursor-pointer w-5 h-5 hover:scale-110 transition-all opacity-70 hover:opacity-100"
+                                        title="Edit Service"
+                                    />
                                     <img
                                         onClick={() => toggleAvailability(service._id)}
                                         src={
@@ -154,14 +163,16 @@ const ManageService = () => {
                                                 ? assets.eye_close_icon
                                                 : assets.eye_icon
                                         }
-                                        alt=""
-                                        className="cursor-pointer"
+                                        alt="Toggle"
+                                        className="cursor-pointer w-5 h-5 hover:scale-110 transition-all opacity-70 hover:opacity-100"
+                                        title={service.availability ? "Disable Service" : "Enable Service"}
                                     />
                                     <img
                                         onClick={() => deleteService(service._id)}
                                         src={assets.delete_icon}
-                                        alt=""
-                                        className="cursor-pointer"
+                                        alt="Delete"
+                                        className="cursor-pointer w-5 h-5 hover:scale-110 transition-all opacity-70 hover:opacity-100"
+                                        title="Delete Service"
                                     />
                                 </td>
                             </tr>

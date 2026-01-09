@@ -147,7 +147,6 @@ export const dummyserviceData = [
     service_area: "New York",
     pricePerHour: 50,
     duration: "2-4 hours",
-    toolsProvided: true,
     staffCount: 3,
     description:
       "Comprehensive deep cleaning service for homes including kitchen, bathrooms, floors, and more. Perfect for seasonal cleaning or moving in/out.",
@@ -163,7 +162,6 @@ export const dummyserviceData = [
     service_area: "Chicago",
     pricePerHour: 65,
     duration: "1-3 hours",
-    toolsProvided: true,
     staffCount: 1,
     description:
       "Professional plumbing service for fixing pipe leaks, clogged drains, water heater issues, and more. Quick response and reliable work.",
@@ -179,7 +177,6 @@ export const dummyserviceData = [
     service_area: "Los Angeles",
     pricePerHour: 80,
     duration: "2-5 hours",
-    toolsProvided: false,
     staffCount: 2,
     description:
       "Experienced technician for AC repair, servicing, and gas refill. Suitable for both window and split AC units.",
@@ -195,7 +192,6 @@ export const dummyserviceData = [
     service_area: "Houston",
     pricePerHour: 40,
     duration: "1-2 hours",
-    toolsProvided: false,
     staffCount: 2,
     description:
       "Quick and efficient assembly of IKEA and other flat-pack furniture. Includes shelves, desks, beds, and more.",
@@ -213,7 +209,6 @@ export const dummyMyBookingsData = [
     service_area: "New York",
     pricePerHour: 50,
     duration: "2-4 hours",
-    toolsProvided: true,
     staffCount: 3,
     userId: "6847f7cab3d8daecdb517095",
     providerId: "6847f7cab3d8daecdb517095",
@@ -231,7 +226,6 @@ export const dummyMyBookingsData = [
     service_area: "Chicago",
     pricePerHour: 65,
     duration: "1-3 hours",
-    toolsProvided: true,
     staffCount: 1,
     userId: "6847f7cab3d8daecdb517095",
     providerId: "67fe3467ed8a8fe17d0ba6e2",
@@ -249,7 +243,6 @@ export const dummyMyBookingsData = [
     service_area: "Los Angeles",
     pricePerHour: 80,
     duration: "2-5 hours",
-    toolsProvided: false,
     staffCount: 2,
     userId: "6847f7cab3d8daecdb517095",
     providerId: "67fe3467ed8a8fe17d0ba6e2",
@@ -267,7 +260,6 @@ export const dummyMyBookingsData = [
     service_area: "Houston",
     pricePerHour: 40,
     duration: "1-2 hours",
-    toolsProvided: false,
     staffCount: 2,
     userId: "6847f7cab3d8daecdb517095",
     providerId: "6847f7cab3d8daecdb517095",

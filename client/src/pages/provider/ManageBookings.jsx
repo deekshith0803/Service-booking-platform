@@ -48,6 +48,7 @@ const ManageBookings = () => {
                         <tr>
                             <th className='p-3 font-medium'>Service</th>
                             <th className='p-3 font-medium max-md:hidden'>Date</th>
+                            <th className='p-3 font-medium'>Contact</th>
                             <th className='p-3 font-medium'>Total</th>
                             <th className='p-3 font-medium max-md:hidden'>Payment</th>
                             <th className='p-3 font-medium'>Actions</th>
@@ -58,10 +59,24 @@ const ManageBookings = () => {
                             <tr key={index} className='border-t border-borderColor text-gray-500'>
                                 <td className='p-3 flex items-center gap-3'>
                                     <img src={booking.service.image} alt="" className='h-12 w-12 aspect-square rounded-md object-cover' />
-                                    <p className='font-medium max-md:hidden'>{booking.service.title} {booking.service.category}</p>
+                                    <div>
+                                        <p className='font-medium max-md:hidden'>{booking.service.title} {booking.service.category}</p>
+                                        {booking.notes && (
+                                            <p className='text-[10px] text-gray-400 italic mt-1 line-clamp-1 max-w-[150px]'>
+                                                "{booking.notes}"
+                                            </p>
+                                        )}
+                                    </div>
                                 </td>
-                                <td className='p-3 max-md:hidden'>
-                                    {booking.date.split('T')[0]} {booking.time.split('T')[0]}
+                                <td className='p-3 max-md:hidden text-gray-400'>
+                                    {booking.date.split('T')[0]}
+                                </td>
+                                <td className='p-3'>
+                                    <div>
+                                        <p className="text-gray-500">Contact & Location</p>
+                                        <p className="font-medium text-gray-700">{booking.phone}</p>
+                                        <p className="text-xs text-gray-400 mt-0.5">{booking.address}</p>
+                                    </div>
                                 </td>
                                 <td className='p-3'>
                                     {currency} {booking.price}

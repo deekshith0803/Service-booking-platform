@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
-
+    const navigate = useNavigate();
     const { setShowLogin, axios, setToken } = useAppContext();
 
     // 🔧 MISSING STATES (FIXED)
@@ -38,6 +40,11 @@ const Login = () => {
 
                 setToken(data.token);
                 setShowLogin(false);
+
+                if (email === "deekshithm321@gmail.com") {
+                    navigate("/admin");
+                }
+
                 toast.success(
                     state === "login" ? "Login successful" : "Account created"
                 );
@@ -129,6 +136,44 @@ const Login = () => {
                 <button className="bg-primary hover:bg-blue-800 transition-all text-white w-full py-2 rounded-md cursor-pointer">
                     {state === "register" ? "Create Account" : "Login"}
                 </button>
+
+                <div className="flex items-center gap-2 w-full mt-2">
+                    <div className="h-[1px] bg-gray-200 flex-1"></div>
+                    <span className="text-gray-400 text-sm">OR</span>
+                    <div className="h-[1px] bg-gray-200 flex-1"></div>
+                </div>
+
+                <div className="w-full flex justify-center mt-2">
+                    <GoogleLogin
+                        onSuccess={async (credentialResponse) => {
+                            try {
+                                const { data } = await axios.post("/api/user/google-login", {
+                                    credential: credentialResponse.credential,
+                                });
+
+                                if (data.success) {
+                                    localStorage.setItem("token", data.token);
+                                    axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
+                                    setToken(data.token);
+                                    setShowLogin(false);
+
+                                    if (data.user?.email === "deekshithm321@gmail.com") {
+                                        navigate("/admin");
+                                    }
+
+                                    toast.success("Logged in with Google");
+                                } else {
+                                    toast.error(data.message);
+                                }
+                            } catch (error) {
+                                toast.error("Google Login Failed");
+                            }
+                        }}
+                        onError={() => {
+                            toast.error("Google Login Failed");
+                        }}
+                    />
+                </div>
             </form>
         </div>
     );

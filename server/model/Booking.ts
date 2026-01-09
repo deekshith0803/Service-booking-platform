@@ -8,6 +8,11 @@ export interface BookingDocument extends Document {
     time: string;
     price: number;
     status: string;
+    notes?: string;
+    address: string;
+    phone: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 const bookingSchema = new Schema<BookingDocument>(
@@ -23,6 +28,9 @@ const bookingSchema = new Schema<BookingDocument>(
             enum: ["pending", "confirmed", "cancelled"],
             default: "pending",
         },
+        notes: { type: String, default: "" },
+        address: { type: String, required: true },
+        phone: { type: String, required: true },
     },
     { timestamps: true }
 );

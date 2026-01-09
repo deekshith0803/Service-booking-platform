@@ -46,15 +46,21 @@ const ChatPopup = () => {
                     {/* Messages Area */}
                     <div className="flex-1 p-3 overflow-y-auto bg-gray-50">
                         {messages.map((msg, index) => {
-                            const isMe = msg.sender === 'me' || msg.senderId === user?._id;
+                            const sender = msg.senderId;
+                            const senderIdStr = (sender?._id || sender)?.toString();
+                            const isMe = msg.sender === 'me' || senderIdStr === user?._id;
+                            const isAdmin = (typeof sender === 'object' ? sender?.email : null) === "deekshithm321@gmail.com";
+
                             return (
                                 <div key={index} className={`mb-2 flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[75%] p-2 rounded-lg text-sm ${isMe
+                                    <div className={`max-w-[75%] p-2 rounded-lg text-sm relative ${isMe
                                         ? 'bg-blue-500 text-white rounded-br-none'
-                                        : 'bg-gray-200 text-gray-800 rounded-bl-none'
+                                        : isAdmin
+                                            ? 'bg-amber-50 border border-amber-200 text-gray-800 rounded-bl-none ring-1 ring-amber-100'
+                                            : 'bg-gray-200 text-gray-800 rounded-bl-none'
                                         }`}>
                                         <p>{msg.content || msg.text}</p>
-                                        <span className="text-xs opacity-75 block mt-1 text-right">
+                                        <span className="text-[10px] opacity-75 block mt-1 text-right">
                                             {new Date(msg.timestamp || msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>

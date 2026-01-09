@@ -8,8 +8,16 @@ export interface ServiceDocument extends Document {
     category: string;
     image?: string;
     availability: boolean;
-    staffCount: number;
-    toolProvided: boolean;
+    staffCount: number; // default capacity if not in dailyCapacity
+    dailyCapacity: {
+        monday: number;
+        tuesday: number;
+        wednesday: number;
+        thursday: number;
+        friday: number;
+        saturday: number;
+        sunday: number;
+    };
     service_area: string;
     createdAt?: Date;
     updatedAt?: Date;
@@ -53,16 +61,15 @@ const serviceSchema = new Schema<ServiceDocument>(
             default: true,
         },
 
-        staffCount: {
-            type: Number,
-            default: 1,
+        dailyCapacity: {
+            monday: { type: Number, default: 1 },
+            tuesday: { type: Number, default: 1 },
+            wednesday: { type: Number, default: 1 },
+            thursday: { type: Number, default: 1 },
+            friday: { type: Number, default: 1 },
+            saturday: { type: Number, default: 1 },
+            sunday: { type: Number, default: 1 },
         },
-
-        toolProvided: {
-            type: Boolean,
-            default: false,
-        },
-
         service_area: {
             type: String,
             required: true,

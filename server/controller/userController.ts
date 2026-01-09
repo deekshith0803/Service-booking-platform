@@ -47,6 +47,8 @@ export const loginUser = async (req: Request, res: Response) => {
     const user = await User.findOne({ email });
     if (!user) return res.json({ success: false, message: "Invalid credentials" });
 
+    if (!user.password) return res.json({ success: false, message: "Invalid credentials (use Google Login)" });
+
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.json({ success: false, message: "Invalid credentials" });
 
@@ -85,7 +87,7 @@ export const getAllServices = async (req: Request, res: Response) => {
       filter.category = new RegExp(`^${category}$`, "i");
     }
 
-    const services = await Service.find(filter);
+    const services = await Service.find(filter).populate("provider", "name email image");
 
     res.json({ success: true, services });
   } catch (error) {
@@ -97,3 +99,60 @@ export const getAllServices = async (req: Request, res: Response) => {
 };
 
 
+// GOOGLE LOGIN
+export const googleLogin = async (req: Request, res: Response) => {
+  try {
+    const { credential } = req.body;
+    const { OAuth2Client } = await import("google-auth-library");
+    const client = new OAuth2Client();
+
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID, // Specify the CLIENT_ID of the app that accesses the backend
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return res.status(400).json({ success: false, message: "Invalid Google Token" });
+    }
+
+    const { email, name, sub: googleId, picture } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (user) {
+      // If user exists, update googleId if missing
+      if (!user.googleId) {
+        user.googleId = googleId;
+        await user.save();
+      }
+    } else {
+      // Create new user
+      user = await User.create({
+        name: name || "Google User",
+        email,
+        googleId,
+        image: picture,
+        role: "user", // Default role
+      });
+    }
+
+    const token = generateToken(user._id.toString());
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        image: user.image
+      },
+    });
+
+  } catch (error) {
+    console.error("Google Login Error:", error);
+    res.status(500).json({ success: false, message: "Google Login Failed" });
+  }
+};

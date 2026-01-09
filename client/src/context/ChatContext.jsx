@@ -1,135 +1,157 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import io from 'socket.io-client';
-import { useAppContext } from './AppContext';
-import { toast } from "react-hot-toast";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { io } from "socket.io-client";
+import { useAppContext } from "./AppContext";
+import toast from "react-hot-toast";
 
 const ChatContext = createContext();
 
-export const useChat = () => useContext(ChatContext);
-
 export const ChatProvider = ({ children }) => {
-    const { token, axios } = useAppContext();
+    const { axios, user } = useAppContext();
+    const [messages, setMessages] = useState({}); // { providerId: [messages] }
+    const [unreadCounts, setUnreadCounts] = useState({}); // { providerId: count }
+    // Socket connection
     const [socket, setSocket] = useState(null);
-    const [messages, setMessages] = useState([]);
     const [isConnected, setIsConnected] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-    const [activeConversationId, setActiveConversationId] = useState(null);
+    const [activeChatUser, setActiveChatUser] = useState(null); // The user/provider we are chatting with
 
+    // Socket Initialization
     useEffect(() => {
-        if (!token) {
-            if (socket) {
-                socket.disconnect();
-                setSocket(null);
-                setIsConnected(false);
-            }
-            return;
-        }
-
-        // Initialize socket connection
-        const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
-            auth: { token },
-            autoConnect: true,
-        });
-
-        newSocket.on('connect', () => {
-            console.log('Connected to socket server');
-            setIsConnected(true);
-        });
-
-        newSocket.on('connect_error', (err) => {
-            console.error("Socket connection error:", err.message);
-            setIsConnected(false);
-        });
-
-        newSocket.on('disconnect', () => {
-            console.log('Disconnected from socket server');
-            setIsConnected(false);
-        });
-
-        newSocket.on('receive_message', (message) => {
-            // Only append if it belongs to the active conversation
-            setMessages((prev) => {
-                // You might want to check message.conversationId === activeConversationId here
-                // But simply appending for now if we assume one active chat window logic
-                return [...prev, message];
+        if (user) {
+            const newSocket = io(import.meta.env.VITE_API_BASE_URL || "http://localhost:5000", {
+                withCredentials: true
             });
-        });
 
-        setSocket(newSocket);
+            newSocket.on("connect", () => {
+                setIsConnected(true);
+                // Join personal room for notifications if needed
+                newSocket.emit("join_room", user._id);
+            });
 
-        return () => {
-            newSocket.close();
+            newSocket.on("disconnect", () => setIsConnected(false));
+
+            setSocket(newSocket);
+
+            return () => newSocket.close();
+        }
+    }, [user]);
+
+    // Poll for unread messages
+    useEffect(() => {
+        if (!user) return;
+        const fetchUnread = async () => {
+            try {
+                const { data } = await axios.get(`/api/messages/unread/${user._id}`);
+                if (data.success) {
+                    setUnreadCounts(data.counts);
+                }
+            } catch (error) {
+                console.error("Failed to fetch unread counts", error);
+            }
+        }
+        fetchUnread();
+        const interval = setInterval(fetchUnread, 5000); // Poll every 5s
+        return () => clearInterval(interval);
+    }, [user, axios]);
+
+    // Poll active chat messages
+    useEffect(() => {
+        if (!user || !activeChatUser) return;
+
+        const fetchMessages = async () => {
+            try {
+                const { data } = await axios.get(`/api/messages/${activeChatUser._id}?currentUserId=${user._id}`);
+                if (data.success) {
+                    // Update messages for this specific user
+                    setMessages(prev => ({
+                        ...prev,
+                        [activeChatUser._id]: data.messages
+                    }));
+
+                    // If we are looking at the chat, mark as read
+                    if (isOpen) {
+                        await axios.put("/api/messages/read", {
+                            senderId: activeChatUser._id,
+                            receiverId: user._id
+                        });
+                        // Optimistically update unread count
+                        setUnreadCounts(prev => ({ ...prev, [activeChatUser._id]: 0 }));
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch messages", error);
+            }
         };
-    }, [token]);
 
-    const startChat = async (serviceId, providerId) => {
+        fetchMessages();
+        const interval = setInterval(fetchMessages, 3000); // Poll faster for active chat
+
+        return () => clearInterval(interval);
+    }, [user, activeChatUser, isOpen, axios]);
+
+
+    const joinRoom = (roomId) => {
+        if (socket && isConnected) {
+            socket.emit("join_room", roomId);
+        }
+    };
+
+    const loadMessages = (otherUserId) => {
+        setActiveChatUser({ _id: otherUserId }); // minimal user object to trigger poll
+    };
+
+    const openChat = (otherUser) => {
+        setActiveChatUser(otherUser);
+        setIsOpen(true);
+    };
+
+    const closeChat = () => {
+        setIsOpen(false);
+        setActiveChatUser(null);
+    };
+
+    const sendMessage = async (text) => {
+
+        // OPTIONAL: Emit via socket for real-time (not strictly needed since we poll, but better for UI)
+        // For now relying on HTTP POST as per original implementation
+        if (!activeChatUser || !text.trim()) return;
+
         try {
-            const { data } = await axios.post('/api/chat/start', { serviceId, providerId });
+            const { data } = await axios.post("/api/messages/send", {
+                senderId: user._id,
+                receiverId: activeChatUser._id,
+                message: text,
+            });
+
             if (data.success) {
-                const conversationId = data.conversation._id;
-                setActiveConversationId(conversationId);
-                // Join the socket room
-                joinRoom(conversationId);
-                // Load messages
-                loadMessages(conversationId);
-                setIsOpen(true);
-                return conversationId;
+                // Optimistically add message
+                setMessages(prev => ({
+                    ...prev,
+                    [activeChatUser._id]: [...(prev[activeChatUser._id] || []), data.data]
+                }));
             }
         } catch (error) {
-            console.error("Start chat error:", error);
-            toast.error("Failed to start chat");
+            toast.error("Failed to send message");
         }
     };
 
-    const loadMessages = async (conversationId) => {
-        try {
-            const { data } = await axios.get(`/api/chat/${conversationId}`);
-            if (data.success) {
-                setMessages(data.messages);
-            }
-        } catch (error) {
-            console.error("Load messages error:", error);
-        }
+    const value = {
+        isOpen,
+        openChat,
+        closeChat,
+        activeChatUser,
+        messages: activeChatUser ? (messages[activeChatUser._id] || []) : [],
+        sendMessage,
+        unreadCounts,
+        joinRoom, // Exposed now
+        loadMessages, // Exposed now, helper to switch active chat
+        socket,
+        isConnected
     };
 
-    const sendMessage = (room, content) => {
-        if (socket && isConnected) {
-            const messageData = {
-                room,
-                content,
-                timestamp: new Date().toISOString()
-            };
-            socket.emit('send_message', messageData);
-            // Optimistic update handled by socket listener or manually here?
-            // Since server emits back to sender, we can wait for that or do optimistic
-            // Let's rely on server echo for now to ensure ID consistency as per server implementation
-        }
-    };
+    return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
+};
 
-    const joinRoom = (room) => {
-        if (socket && isConnected) {
-            socket.emit('join_room', room);
-        }
-    };
-
-    const toggleChat = () => setIsOpen(!isOpen);
-
-    return (
-        <ChatContext.Provider value={{
-            socket,
-            isConnected,
-            messages,
-            sendMessage,
-            joinRoom,
-            isOpen,
-            toggleChat,
-            startChat,
-            loadMessages,
-            activeConversationId,
-            setActiveConversationId,
-            setIsOpen
-        }}>
-            {children}
-        </ChatContext.Provider>
-    );
+export const useChat = () => {
+    return useContext(ChatContext);
 };

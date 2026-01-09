@@ -7,10 +7,13 @@ import connectDB from "./config/db.js";
 import userRouter from "./route/userRoute.js";
 import providerRoute from "./route/providerRoutes.js";
 import bookingRouter from "./route/bookingRoutes.js";
+import messageRouter from "./route/messageRoutes.js";
 import chatRouter from "./route/chatRoute.js";
 import { socketAuthMiddleware } from "./middleware/socketAuth.js";
 import Message from "./model/Message.js";
 import Conversation from "./model/Conversation.js";
+import adminRouter from "./route/adminRoutes.js";
+import reviewRouter from "./route/reviewRoute.js";
 
 const app = express();
 
@@ -89,7 +92,10 @@ async function start() {
     app.use("/api/user", userRouter);
     app.use("/api/provider", providerRoute);
     app.use("/api/bookings", bookingRouter);
+    app.use("/api/messages", messageRouter);
     app.use("/api/chat", chatRouter);
+    app.use("/api/admin", adminRouter);
+    app.use("/api/reviews", reviewRouter);
 
     // start the server
     const PORT = process.env.PORT || 5000;

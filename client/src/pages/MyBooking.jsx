@@ -3,11 +3,14 @@ import { assets } from "../assets/assets";
 import Title from "../components/Title";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
+import { useChat } from "../context/ChatContext"; // Import useChat
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
+import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline"; // Import icon
 
 const MyBooking = () => {
   const { currency, axios, user } = useAppContext();
+  const { openChat, unreadCounts } = useChat(); // Use chat context
   const [booking, setBooking] = useState([]);
   const navigate = useNavigate();
 
@@ -125,7 +128,7 @@ const MyBooking = () => {
                 <div>
                   <p className="text-gray-500">Date</p>
                   <p>
-                    {booking.date?.split("T")[0]} · {booking.time}
+                    {booking.date?.split("T")[0]}
                   </p>
                 </div>
               </div>
@@ -137,9 +140,35 @@ const MyBooking = () => {
                   className="w-4 h-4 mt-1"
                 />
                 <div>
-                  <p className="text-gray-500">Location</p>
-                  <p>{booking.service.service_area}</p>
+                  <p className="text-gray-500">Contact & Address</p>
+                  <p className="font-medium">{booking.phone}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{booking.address}</p>
                 </div>
+              </div>
+
+              {booking.notes && (
+                <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Requirements</p>
+                  <p className="text-gray-600 text-xs italic leading-relaxed">"{booking.notes}"</p>
+                </div>
+              )}
+
+              {/* Chat Button */}
+              <div className="mt-4">
+                <button
+                  onClick={() => openChat({ _id: booking.provider._id, name: booking.provider.name, image: booking.provider.image || assets.user_profile, role: "provider" })}
+                  className="flex items-center gap-2 text-primary hover:text-primary-dull transition-colors"
+                >
+                  <div className="relative">
+                    <ChatBubbleLeftRightIcon className="w-5 h-5" />
+                    {unreadCounts[booking.provider._id] > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-3.5 h-3.5 flex items-center justify-center rounded-full">
+                        {unreadCounts[booking.provider._id]}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm font-medium">Chat with Provider</span>
+                </button>
               </div>
             </div>
 

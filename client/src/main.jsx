@@ -4,13 +4,16 @@ import App from "./App.jsx";
 import { BrowserRouter } from "react-router-dom";
 import { AppProvider } from "./context/AppContext.jsx";
 import { MotionConfig } from 'motion/react'
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
-    <AppProvider>
-      <MotionConfig viewport={{ once: true }}>
-        <App />
-      </MotionConfig>
-    </AppProvider>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID"}>
+      <AppProvider>
+        <MotionConfig viewport={{ once: true }}>
+          <App />
+        </MotionConfig>
+      </AppProvider>
+    </GoogleOAuthProvider>
   </BrowserRouter>,
 );

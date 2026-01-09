@@ -1,15 +1,17 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Title from '../../components/provider/Tittl'
-import { assets } from '../../assets/assets'
-import { serviceCategories } from '../../assets/assets'
+import { assets, serviceCategories } from '../../assets/assets'
 import { useAppContext } from '../../context/AppContext'
 import toast from 'react-hot-toast'
+import { useParams, useNavigate } from 'react-router-dom'
 
-const AddService = () => {
-
+const EditService = () => {
+    const { id } = useParams();
+    const navigate = useNavigate();
     const { axios, currency } = useAppContext();
 
     const [image, setImage] = useState(null)
+    const [previewImage, setPreviewImage] = useState(null)
     const [service, setService] = useState({
         title: "",
         description: "",
@@ -27,47 +29,63 @@ const AddService = () => {
         },
     })
     const [isLoading, setIsLoading] = useState(false)
+    const [isFetching, setIsFetching] = useState(true)
+
+    const fetchServiceDetails = async () => {
+        try {
+            const { data } = await axios.get('/api/provider/services');
+            if (data.success) {
+                const s = data.service.find(item => item._id === id);
+                if (s) {
+                    setService({
+                        title: s.title,
+                        description: s.description,
+                        category: s.category,
+                        pricePerHour: s.price,
+                        serviceArea: s.service_area,
+                        dailyCapacity: s.dailyCapacity || {
+                            monday: 1, tuesday: 1, wednesday: 1, thursday: 1, friday: 1, saturday: 1, sunday: 1
+                        },
+                    });
+                    setPreviewImage(s.image);
+                } else {
+                    toast.error("Service not found");
+                    navigate('/provider/manage-service');
+                }
+            }
+        } catch (error) {
+            toast.error("Failed to fetch service details");
+        } finally {
+            setIsFetching(false);
+        }
+    }
+
+    useEffect(() => {
+        fetchServiceDetails();
+    }, [id]);
+
     const onSubmitHandler = async (e) => {
         e.preventDefault();
         if (isLoading) return;
-
-        if (!image) {
-            toast.error("Please upload an image");
-            return;
-        }
 
         setIsLoading(true);
         try {
             const formData = new FormData();
 
-            formData.append("image", image);
+            if (image) {
+                formData.append("image", image);
+            }
             formData.append("service", JSON.stringify(service));
+
             const { data } = await axios.post(
-                "/api/provider/add-service",
+                `/api/provider/update-service/${id}`,
                 formData,
                 { withCredentials: true }
             );
 
             if (data.success) {
                 toast.success(data.message);
-
-                setImage(null);
-                setService({
-                    title: "",
-                    description: "",
-                    category: "",
-                    pricePerHour: "",
-                    serviceArea: "",
-                    dailyCapacity: {
-                        monday: 1,
-                        tuesday: 1,
-                        wednesday: 1,
-                        thursday: 1,
-                        friday: 1,
-                        saturday: 1,
-                        sunday: 1
-                    },
-                });
+                navigate('/provider/manage-service');
             } else {
                 toast.error(data.message);
             }
@@ -80,12 +98,13 @@ const AddService = () => {
         }
     };
 
+    if (isFetching) return <div className="p-10 text-center text-gray-400">Loading service details...</div>
 
     return (
         <div className="px-4 py-10 md:px-10 flex-1">
             <Title
-                title="Add Service"
-                subtitle="Please provide all the necessary details about the service you wish to offer, including its name, description, pricing, and availability, so that it can be accurately displayed to users and managed effectively within the platform."
+                title="Edit Service"
+                subtitle="Update your service details, pricing, and daily capacity."
             />
 
             <form
@@ -94,12 +113,15 @@ const AddService = () => {
             >
                 {/* Service Image */}
                 <div className="flex items-center gap-4">
-                    <label htmlFor="service-image" className="cursor-pointer">
+                    <label htmlFor="service-image" className="cursor-pointer group relative">
                         <img
-                            src={image ? URL.createObjectURL(image) : assets.upload_icon}
+                            src={image ? URL.createObjectURL(image) : (previewImage || assets.upload_icon)}
                             alt="Upload"
-                            className="h-20 w-20 rounded object-cover border"
+                            className="h-24 w-24 rounded-xl object-cover border-2 border-dashed border-gray-200 group-hover:border-primary/50 transition-all shadow-sm"
                         />
+                        <div className="absolute inset-0 bg-black/20 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                            <p className="text-[10px] text-white font-bold bg-primary/80 px-2 py-1 rounded">CHANGE</p>
+                        </div>
                         <input
                             type="file"
                             id="service-image"
@@ -107,11 +129,13 @@ const AddService = () => {
                             hidden
                             onChange={(e) => {
                                 setImage(e.target.files[0])
-                                setService({ ...service, image: e.target.files[0] })
                             }}
                         />
                     </label>
-                    <p className="text-sm text-gray-500">Upload a clear image representing your service</p>
+                    <div>
+                        <p className="text-sm font-bold text-gray-700">Service Image</p>
+                        <p className="text-xs text-gray-400">Click to upload a new image or keep the current one.</p>
+                    </div>
                 </div>
 
                 {/* Title and Category */}
@@ -123,7 +147,7 @@ const AddService = () => {
                             value={service.title}
                             placeholder="e.g., Air Conditioner Repair"
                             onChange={(e) => setService({ ...service, title: e.target.value })}
-                            className="px-3 py-2 border border-borderColor rounded-md outline-none"
+                            className="px-3 py-2 border border-borderColor rounded-md outline-none focus:border-primary transition-all"
                             required
                         />
                     </div>
@@ -133,7 +157,7 @@ const AddService = () => {
                         <select
                             value={service.category}
                             onChange={(e) => setService({ ...service, category: e.target.value })}
-                            className="px-3 py-2 border border-borderColor rounded-md outline-none bg-white"
+                            className="px-3 py-2 border border-borderColor rounded-md outline-none bg-white focus:border-primary transition-all"
                             required
                         >
                             <option value="">Select a category</option>
@@ -153,12 +177,12 @@ const AddService = () => {
                         value={service.description}
                         placeholder="Describe your service..."
                         onChange={(e) => setService({ ...service, description: e.target.value })}
-                        className="px-3 py-2 border border-borderColor rounded-md outline-none resize-none h-28"
+                        className="px-3 py-2 border border-borderColor rounded-md outline-none resize-none h-28 focus:border-primary transition-all"
                         required
                     />
                 </div>
 
-                {/* Price Per Hour and Duration */}
+                {/* Price and Area */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex flex-col">
                         <label className="font-medium mb-1 text-primary">Fixed Price for Work ({currency})</label>
@@ -179,7 +203,7 @@ const AddService = () => {
                             value={service.serviceArea}
                             placeholder="e.g., California"
                             onChange={(e) => setService({ ...service, serviceArea: e.target.value })}
-                            className="px-3 py-2 border border-borderColor rounded-md outline-none"
+                            className="px-3 py-2 border border-borderColor rounded-md outline-none focus:border-primary transition-all"
                             required
                         />
                     </div>
@@ -215,10 +239,9 @@ const AddService = () => {
                 <div className="pt-4">
                     <button
                         type="submit"
-                        className="flex items-center gap-2 px-4 py-2.5 mt-4 bg-primary text-white rounded-md font-medium w-max cursor-pointer"
+                        className="flex items-center gap-2 px-6 py-3 mt-4 bg-primary text-white rounded-xl font-bold w-max cursor-pointer shadow-lg shadow-primary/20 hover:bg-primary-dull transition-all active:scale-95"
                     >
-                        <img src={assets.tick_icon} alt="" />
-                        {isLoading ? "Listing Your Service..." : "List Your Service"}
+                        {isLoading ? "Updating Service..." : "Update Service"}
                     </button>
                 </div>
             </form>
@@ -226,4 +249,4 @@ const AddService = () => {
     )
 }
 
-export default AddService
+export default EditService

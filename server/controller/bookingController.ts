@@ -3,28 +3,53 @@ import { Request, Response } from "express";
 import Service from "../model/Service.js";
 
 
-//functiom to check if the service is available
-export const checkAvailability = async (serviceId: string, date: Date, time: string) => {
-    const bookings = await Booking.find({
-        service: serviceId,
-        date: { $gte: date },
-        time: { $gte: time },
+// function to check if the service is available for a date
+export const checkAvailability = async (serviceId: string, date: Date) => {
+    const serviceData = await Service.findById(serviceId);
+    if (!serviceData) return false;
+
+    const targetDate = new Date(date);
+    targetDate.setHours(0, 0, 0, 0);
+
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayName = days[targetDate.getDay()];
+
+    // Get capacity for this specific day of the week
+    const dayCapacity = (serviceData.dailyCapacity as any)[dayName] ?? 1;
+
+    // Find all bookings for this provider on this specific date
+    const dayStart = new Date(targetDate);
+    const dayEnd = new Date(targetDate);
+    dayEnd.setDate(dayEnd.getDate() + 1);
+
+    const bookingsCount = await Booking.countDocuments({
+        provider: serviceData.provider,
+        date: { $gte: dayStart, $lt: dayEnd },
+        status: { $ne: "cancelled" }
     });
-    return bookings.length === 0
+
+    if (bookingsCount >= dayCapacity) {
+        return false;
+    }
+
+    return true;
 }
 
 // Api to check availability of service fot the given date and time
 export const checkAvailabilityOfService = async (req: Request, res: Response) => {
     try {
-        const {service_area, date, time} = req.body;
-        const services = await Service.find({service_area, availability: true});
-        const availableServicesPromises = services.map(async (service) => {
-            const isAvailable = await checkAvailability(service._id.toString(), date, time);
+        const { service_area, date, time } = req.body;
+        const bookingDate = new Date(date);
+
+        const services = await Service.find({ service_area, availability: true });
+        const availableServicesPromises = services.map(async (service: any) => {
+            const isAvailable = await checkAvailability(service._id.toString(), bookingDate);
             return {
                 ...service.toObject(),
                 isAvailable,
             };
         });
+
         let availableService = await Promise.all(availableServicesPromises);
         availableService = availableService.filter((service) => service.isAvailable);
         res.json({ success: true, availableServices: availableService });
@@ -37,64 +62,31 @@ export const checkAvailabilityOfService = async (req: Request, res: Response) =>
 //api to create booking
 export const createBooling = async (req: Request, res: Response) => {
     try {
-        // Check if user is authenticated
         if (!req.user || !req.user._id) {
             return res.status(401).json({ success: false, message: "User not authenticated" });
         }
 
-        const { service, date, time } = req.body;
+        const { service, date, time, notes, address, phone } = req.body;
 
-        // Validate required fields
-        if (!service || !date || !time) {
-            return res.status(400).json({ success: false, message: "Missing required fields: service, date, and time" });
+        if (!service || !date || !time || !address || !phone) {
+            return res.status(400).json({ success: false, message: "Missing required fields: service, date, address, and phone" });
         }
 
-        // Find service data
         const serviceData = await Service.findById(service);
         if (!serviceData) {
             return res.status(404).json({ success: false, message: "Service not found" });
         }
 
-        // Check if service is available
         const bookingDate = new Date(date);
-        const isAvailable = await checkAvailability(service, bookingDate, time);
+        const isAvailable = await checkAvailability(service, bookingDate);
+
         if (!isAvailable) {
-            return res.status(400).json({ success: false, message: "Service is not available at this time" });
+            return res.status(400).json({ success: false, message: "Provider is fully booked for this day" });
         }
 
-        // Calculate price based on duration
-        // Time slots are in format "9-11", "11-1", "2-4", "4-6" (2-hour slots)
-        const calculatePrice = (timeSlot: string, pricePerHour: number): number => {
-            // Parse time slot to get duration in hours
-            const timeParts = timeSlot.split('-');
-            if (timeParts.length !== 2) {
-                // Default to 2 hours if format is unexpected
-                return pricePerHour * 2;
-            }
-            
-            let startHour = parseInt(timeParts[0]);
-            let endHour = parseInt(timeParts[1]);
-            
-            // Handle cases like "11-1" (11 AM to 1 PM)
-            if (endHour < startHour) {
-                endHour += 12; // Convert to 24-hour format
-            }
-            
-            // Handle 12-hour to 24-hour conversion for afternoon times
-            if (startHour < 9) {
-                startHour += 12; // Afternoon times
-            }
-            if (endHour <= 12 && endHour < startHour) {
-                endHour += 12;
-            }
-            
-            const duration = endHour - startHour;
-            return pricePerHour * duration;
-        };
+        // Fixed Price for the work
+        const calculatedPrice = serviceData.price;
 
-        const calculatedPrice = calculatePrice(time, serviceData.price);
-
-        // Create booking
         const booking = await Booking.create({
             service: serviceData._id,
             user: req.user._id,
@@ -102,10 +94,13 @@ export const createBooling = async (req: Request, res: Response) => {
             date: bookingDate,
             time,
             price: calculatedPrice,
-            status: "pending"
+            status: "pending",
+            notes: notes || "",
+            address,
+            phone
         });
 
-        res.status(201).json({ success: true, booking, message: "booking created" });
+        res.status(201).json({ success: true, booking, message: "Booking created successfully" });
     } catch (error) {
         console.error("Error in createBooking:", error);
         res.status(500).json({ success: false, message: "Server error" });
@@ -201,6 +196,23 @@ export const changeBookingStatus = async (req: Request, res: Response) => {
         res.json({ success: true, message: "Status updated successfully", booking });
     } catch (error) {
         console.error("Error in changeBookingStatus:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+}
+
+// API to check availability for all slots of a specific service on a specific date
+export const getServiceAvailabilityForDate = async (req: Request, res: Response) => {
+    try {
+        const { serviceId } = req.params;
+        const { date } = req.query;
+        if (!date) return res.status(400).json({ success: false, message: "Date is required" });
+
+        const bookingDate = new Date(date as string);
+        const isAvailable = await checkAvailability(serviceId, bookingDate);
+
+        res.json({ success: true, isAvailable });
+    } catch (error) {
+        console.error("Error in getServiceAvailabilityForDate:", error);
         res.status(500).json({ success: false, message: "Server error" });
     }
 }

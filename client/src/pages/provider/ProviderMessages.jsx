@@ -5,8 +5,8 @@ import { toast } from 'react-hot-toast';
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 
 const ProviderMessages = () => {
-    const { axios, token } = useAppContext();
-    const { sendMessage, messages, joinRoom, loadMessages, isConnected, socket } = useChat();
+    const { axios, token, user } = useAppContext();
+    const { sendMessage, messages, joinRoom, loadMessages, isConnected, socket, unreadCounts } = useChat();
     const [conversations, setConversations] = useState([]);
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [messageInput, setMessageInput] = useState('');
@@ -20,7 +20,7 @@ const ProviderMessages = () => {
 
     const fetchConversations = async () => {
         try {
-            const { data } = await axios.get('/api/chat/provider/conversations');
+            const { data } = await axios.get('/api/messages/conversations');
             if (data.success) {
                 setConversations(data.conversations);
             }
@@ -30,16 +30,28 @@ const ProviderMessages = () => {
         }
     };
 
-    const handleSelectConversation = (conv) => {
+    const handleSelectConversation = async (conv) => {
         setSelectedConversation(conv);
         joinRoom(conv._id);
         loadMessages(conv._id);
+
+        try {
+            // Mark messages as read
+            await axios.put("/api/messages/read", {
+                senderId: conv._id,
+                receiverId: user._id
+            });
+            // Note: Context polling will clear the red dot globally in a few seconds.
+            // Ideally we'd have a 'markRead' function in context to update state instantly.
+        } catch (error) {
+            console.error("Error marking read:", error);
+        }
     };
 
     const handleSend = (e) => {
         e.preventDefault();
         if (messageInput.trim() && selectedConversation) {
-            sendMessage(selectedConversation._id, messageInput);
+            sendMessage(messageInput);
             setMessageInput('');
             // Update last message in local list optimistically
             setConversations(prev => prev.map(c =>
@@ -98,12 +110,24 @@ const ProviderMessages = () => {
                                 className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${selectedConversation?._id === conv._id ? 'bg-blue-50' : ''}`}
                             >
                                 <div className="flex justify-between items-start mb-1">
-                                    <h3 className="font-medium text-gray-900">{conv.userId?.name || 'User'}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-medium text-gray-900">{conv.userId?.name || 'User'}</h3>
+                                        {conv.userId?.email === "deekshithm321@gmail.com" && (
+                                            <span className="bg-amber-100 text-amber-700 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">Admin</span>
+                                        )}
+                                    </div>
                                     <span className="text-xs text-gray-400">
                                         {new Date(conv.updatedAt).toLocaleDateString()}
                                     </span>
                                 </div>
-                                <p className="text-xs text-blue-600 mb-1">{conv.serviceId?.title}</p>
+                                <div className="flex justify-between items-center">
+                                    <p className="text-xs text-blue-600 mb-1">{conv.serviceId?.title}</p>
+                                    {unreadCounts[conv._id] > 0 && (
+                                        <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] h-[18px] flex items-center justify-center">
+                                            {unreadCounts[conv._id]}
+                                        </span>
+                                    )}
+                                </div>
                                 <p className="text-sm text-gray-500 truncate">{conv.lastMessage}</p>
                             </div>
                         ))
@@ -125,7 +149,12 @@ const ProviderMessages = () => {
                                     &larr;
                                 </button>
                                 <div>
-                                    <h3 className="font-semibold">{selectedConversation.userId?.name}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-semibold">{selectedConversation.userId?.name}</h3>
+                                        {selectedConversation.userId?.email === "deekshithm321@gmail.com" && (
+                                            <span className="bg-amber-100 text-amber-700 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">Admin</span>
+                                        )}
+                                    </div>
                                     <p className="text-xs text-gray-500">{selectedConversation.serviceId?.title}</p>
                                 </div>
                             </div>
@@ -133,16 +162,19 @@ const ProviderMessages = () => {
 
                         {/* Messages */}
                         <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
-                            {messages.map((msg, index) => (
-                                <div key={index} className={`mb-3 flex ${msg.senderId === token /* Logic to check if sender is ME (provider) */ ? 'justify-end' : 'justify-start'}`}>
-                                    {/* Note: msg.senderId comparison needs real user ID not token. 
+                            {messages.map((msg, index) => {
+                                const senderIdStr = (msg.senderId?._id || msg.senderId)?.toString();
+                                return (
+                                    <div key={index} className={`mb-3 flex ${senderIdStr === user?._id ? 'justify-end' : 'justify-start'}`}>
+                                        {/* Note: msg.senderId comparison needs real user ID not token. 
                                         Since we don't have user ID in context easily without parsing token again or storing it:
                                         We can trust 'sender' field if added, currently we use senderId.
                                         Let's fix this by using `useAppContext` user object if available.
                                     */}
-                                    <MessageBubble msg={msg} />
-                                </div>
-                            ))}
+                                        <MessageBubble msg={msg} />
+                                    </div>
+                                );
+                            })}
                             <div ref={messagesEndRef} />
                         </div>
 
@@ -176,11 +208,16 @@ const ProviderMessages = () => {
 
 const MessageBubble = ({ msg }) => {
     const { user } = useAppContext();
-    const isMe = msg.senderId === user?._id;
+    const sender = msg.senderId;
+    const senderIdStr = (sender?._id || sender)?.toString();
+    const isMe = senderIdStr === user?._id;
+    const isAdmin = (typeof sender === 'object' ? sender?.email : null) === "deekshithm321@gmail.com";
 
     return (
-        <div className={`max-w-[70%] p-3 rounded-lg ${isMe
-                ? 'bg-blue-600 text-white rounded-br-none'
+        <div className={`max-w-[70%] p-3 rounded-lg relative ${isMe
+            ? 'bg-blue-600 text-white rounded-br-none'
+            : isAdmin
+                ? 'bg-amber-50 border border-amber-200 text-gray-800 rounded-bl-none ring-1 ring-amber-100'
                 : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
             }`}>
             <p className="text-sm">{msg.text || msg.content}</p>

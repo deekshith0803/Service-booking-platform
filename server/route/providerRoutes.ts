@@ -8,6 +8,7 @@ import {
   getProviderService,
   toggleServiceAvailability,
   updateUserImage,
+  updateService,
 } from "../controller/providerController.js";
 import upload from "../middleware/multer.js";
 
@@ -23,6 +24,7 @@ providerRoute.post(
 
 providerRoute.get("/services", protect, getProviderService as unknown as express.RequestHandler);
 providerRoute.post("/toggle-service", protect, toggleServiceAvailability as unknown as express.RequestHandler);
+providerRoute.post("/update-service/:serviceId", protect, upload.single("image"), updateService as unknown as express.RequestHandler);
 providerRoute.post("/delete-service", protect, deleteService as unknown as express.RequestHandler);
 providerRoute.get("/dashboard", protect, getDashboardData as unknown as express.RequestHandler);
 

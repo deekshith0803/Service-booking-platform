@@ -4,9 +4,12 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import toast from 'react-hot-toast';
 
+import { useChat } from '../../context/ChatContext';
+
 const SideBar = () => {
 
     const { user, axios, fetchUser } = useAppContext();
+    const { unreadCounts } = useChat();
     const location = useLocation();
     const [image, setImage] = useState('');
 
@@ -43,24 +46,38 @@ const SideBar = () => {
             )}
             <p className='mt-2 text-base max-md:hidden'>{user?.name}</p>
             <div className='w-full'>
-                {providerMenuLinks.map((link, index) => (
-                    <NavLink
-                        key={index}
-                        to={link.path}
-                        className={`relative flex items-center gap-2 w-full py-3 pl-4 first:mt-6 ${link.path === location.pathname ? 'bg-primary/10 text-primary' : 'text-gray-600'
-                            }`}
-                    >
-                        <img
-                            src={link.path === location.pathname ? link.coloredIcon : link.icon}
-                            alt="service icon"
-                        />
-                        <span className='max-md:hidden'>{link.name}</span>
-                        <div
-                            className={`${link.path === location.pathname && 'bg-primary'
-                                } w-1.5 h-8 rounded-1 right-0 absolute`}
-                        ></div>
-                    </NavLink>
-                ))}
+                <div className='w-full'>
+                    {providerMenuLinks.map((link, index) => {
+                        const isMessages = link.name.toLowerCase() === 'messages';
+                        const unreadCount = isMessages ? Object.values(unreadCounts).reduce((a, b) => a + b, 0) : 0;
+
+                        return (
+                            <NavLink
+                                key={index}
+                                to={link.path}
+                                className={`relative flex items-center gap-2 w-full py-3 pl-4 first:mt-6 ${link.path === location.pathname ? 'bg-primary/10 text-primary' : 'text-gray-600'
+                                    }`}
+                            >
+                                <img
+                                    src={link.path === location.pathname ? link.coloredIcon : link.icon}
+                                    alt="service icon"
+                                />
+                                <div className="flex items-center gap-2">
+                                    <span className='max-md:hidden'>{link.name}</span>
+                                    {isMessages && unreadCount > 0 && (
+                                        <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center justify-center min-w-[18px] h-[18px]">
+                                            {unreadCount}
+                                        </span>
+                                    )}
+                                </div>
+                                <div
+                                    className={`${link.path === location.pathname && 'bg-primary'
+                                        } w-1.5 h-8 rounded-1 right-0 absolute`}
+                                ></div>
+                            </NavLink>
+                        )
+                    })}
+                </div>
             </div>
         </div >
     )

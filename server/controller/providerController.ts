@@ -27,7 +27,7 @@ export const changeRollToProvider = async (req: Request, res: Response) => {
 
     const updatedUser = await User.findByIdAndUpdate(
       _id,
-      { role: 'provider' },
+      { isProviderRequested: true },
       { new: true, runValidators: true }
     );
 
@@ -122,11 +122,10 @@ export const addService = async (req: MulterRequest, res: Response) => {
       description: serviceData.description,
       category: serviceData.category,
 
-      price: serviceData.pricePerHour,          // 🔥 mapped
-      service_area: serviceData.serviceArea,    // 🔥 mapped
+      price: serviceData.pricePerHour,          // Fixed Price
+      service_area: serviceData.serviceArea,
 
-      staffCount: serviceData.staffCount ?? 1,
-      toolProvided: serviceData.toolsProvided ?? false,
+      dailyCapacity: serviceData.dailyCapacity,
 
       image: optimizedImageUrl,
     });
@@ -247,6 +246,78 @@ export const deleteService = async (req: AuthenticatedRequest, res: Response) =>
     });
   } catch (error) {
     console.error("deleteService:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// api to update service
+export const updateService = async (req: MulterRequest, res: Response) => {
+  try {
+    const userId = req.user?._id;
+    const { serviceId } = req.params;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    let serviceData: any;
+    try {
+      serviceData =
+        typeof req.body.service === "string"
+          ? JSON.parse(req.body.service)
+          : req.body.service;
+    } catch {
+      return res.status(400).json({ success: false, message: "Invalid service data format" });
+    }
+
+    const service = await Service.findById(serviceId);
+    if (!service) {
+      return res.status(404).json({ success: false, message: "Service not found" });
+    }
+
+    if (service.provider.toString() !== userId.toString()) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    // Update basic fields
+    if (serviceData.title) service.title = serviceData.title;
+    if (serviceData.description) service.description = serviceData.description;
+    if (serviceData.category) service.category = serviceData.category;
+    if (serviceData.pricePerHour) service.price = serviceData.pricePerHour;
+    if (serviceData.serviceArea) service.service_area = serviceData.serviceArea;
+    if (serviceData.dailyCapacity) service.dailyCapacity = serviceData.dailyCapacity;
+
+    // Handle Image if provided
+    const imageFile = req.file;
+    if (imageFile) {
+      const fileBuffer = fs.readFileSync(imageFile.path);
+      const uploadResponse = await imagekit.upload({
+        file: fileBuffer,
+        fileName: imageFile.originalname,
+        folder: "/services",
+      });
+
+      const optimizedImageUrl = imagekit.url({
+        path: uploadResponse.filePath,
+        transformation: [
+          { width: "1200" },
+          { quality: "80" },
+          { format: "webp" },
+        ],
+      });
+      service.image = optimizedImageUrl;
+      fs.unlink(imageFile.path, () => { });
+    }
+
+    await service.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Service updated successfully",
+      service,
+    });
+  } catch (error) {
+    console.error("updateService:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
