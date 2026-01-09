@@ -3,12 +3,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import { assets } from "../assets/assets";
 import Loader from "../components/Loader";
 import { useAppContext } from "../context/AppContext";
+import { useChat } from "../context/ChatContext";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 
 const Servicedetails = () => {
   const { id } = useParams();
   const { service, axios, date, setDate, time, setTime } = useAppContext();
+  const { startChat } = useChat();
   const navigate = useNavigate();
   const [services, setServices] = useState(null);
   const currency = import.meta.env.VITE_CURRENCY;
@@ -159,6 +161,20 @@ const Servicedetails = () => {
           >
             Book Now
           </motion.button>
+
+          <button
+            type="button"
+            onClick={async () => {
+              if (services.provider) {
+                await startChat(services._id, services.provider);
+              } else {
+                toast.error("Provider information missing");
+              }
+            }}
+            className="w-full bg-white border border-primary text-primary hover:bg-gray-50 py-3 font-medium rounded-lg cursor-pointer flex items-center justify-center gap-2"
+          >
+            Chat with Provider
+          </button>
 
           <p className="text-sm text-center">
             No credit card required to book

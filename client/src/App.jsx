@@ -11,10 +11,14 @@ import ProviderDashboard from "./pages/provider/ProviderDashboard";
 import ManageBookings from "./pages/provider/ManageBookings";
 import ManageService from "./pages/provider/ManageService";
 import AddService from "./pages/provider/AddService";
+import ProviderMessages from "./pages/provider/ProviderMessages";
 import Login from "./components/Login";
 import ServiceCategory from "./pages/ServiceCategory";
 import { Toaster } from "react-hot-toast";
 import { useAppContext } from "./context/AppContext";
+
+import { ChatProvider } from "./context/ChatContext";
+import ChatPopup from "./components/Chat/ChatPopup";
 
 const App = () => {
 
@@ -23,8 +27,7 @@ const App = () => {
   const isProvider = useLocation().pathname.startsWith("/provider");
 
   return (
-    <>
-
+    <ChatProvider>
       <Toaster position="top-center" />
 
       {showLogin && <Login />}
@@ -42,11 +45,13 @@ const App = () => {
           <Route path="manage-bookings" element={<ManageBookings />} />
           <Route path="manage-service" element={<ManageService />} />
           <Route path="add-service" element={<AddService />} />
+          <Route path="messages" element={<ProviderMessages />} />
         </Route>
       </Routes>
 
       {!isProvider && <Footer />}
-    </>
+      {!isProvider && <ChatPopup />}
+    </ChatProvider>
   );
 };
 

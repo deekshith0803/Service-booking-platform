@@ -121,6 +121,12 @@ export const providerMenuLinks = [
     icon: listIcon,
     coloredIcon: listIconColored,
   },
+  {
+    name: "Messages",
+    path: "/provider/messages",
+    icon: listIcon, // reusing listIcon for now
+    coloredIcon: listIconColored,
+  },
 ];
 
 export const dummyUserData = {
