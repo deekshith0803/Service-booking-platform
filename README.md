@@ -84,10 +84,3 @@ A comprehensive platform for booking and managing various services, built with t
 
     Access the application at `http://localhost:5173`.
 
-## 🤝 Contributing
-
-Contributions are welcome! Please fork the repository and submit a pull request.
-
-## 📄 License
-
-[ISC](LICENSE)
