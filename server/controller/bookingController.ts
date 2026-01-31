@@ -1,6 +1,7 @@
 import Booking from "../model/Booking.js"
 import { Request, Response } from "express";
 import Service from "../model/Service.js";
+import crypto from "crypto";
 
 
 // function to check if the service is available for a date
@@ -60,13 +61,13 @@ export const checkAvailabilityOfService = async (req: Request, res: Response) =>
 }
 
 //api to create booking
-export const createBooling = async (req: Request, res: Response) => {
+export const createBooking = async (req: Request, res: Response) => {
     try {
         if (!req.user || !req.user._id) {
             return res.status(401).json({ success: false, message: "User not authenticated" });
         }
 
-        const { service, date, time, notes, address, phone } = req.body;
+        const { service, date, time, notes, address, phone, paymentId, orderId, signature } = req.body;
 
         if (!service || !date || !time || !address || !phone) {
             return res.status(400).json({ success: false, message: "Missing required fields: service, date, address, and phone" });
@@ -84,6 +85,27 @@ export const createBooling = async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, message: "Provider is fully booked for this day" });
         }
 
+        // Verify Payment if payment details are provided
+        let paymentStatus = "pending";
+        let finalPaymentId = paymentId || "";
+
+        if (req.body.paymentMethod === "cod") {
+            finalPaymentId = "COD";
+            paymentStatus = "pending";
+        } else if (paymentId && orderId && signature) {
+            const body = orderId + "|" + paymentId;
+            const expectedSignature = crypto
+                .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "")
+                .update(body.toString())
+                .digest("hex");
+
+            if (expectedSignature === signature) {
+                paymentStatus = "paid";
+            } else {
+                return res.status(400).json({ success: false, message: "Invalid payment signature" });
+            }
+        }
+
         // Fixed Price for the work
         const calculatedPrice = serviceData.price;
 
@@ -97,7 +119,11 @@ export const createBooling = async (req: Request, res: Response) => {
             status: "pending",
             notes: notes || "",
             address,
-            phone
+            phone,
+            paymentId: finalPaymentId,
+            orderId: orderId || "",
+            paymentStatus,
+            paymentMethod: req.body.paymentMethod === "cod" ? "cod" : "online"
         });
 
         res.status(201).json({ success: true, booking, message: "Booking created successfully" });
@@ -189,14 +215,55 @@ export const changeBookingStatus = async (req: Request, res: Response) => {
             return res.status(403).json({ success: false, message: "Unauthorized: You can only change status of your own bookings" });
         }
 
-        // Update status
-        booking.status = status;
-        await booking.save();
+        // Update status using findByIdAndUpdate to avoid validation errors on old documents
+        const updatedBooking = await Booking.findByIdAndUpdate(
+            bookingId,
+            { status },
+            { new: true }
+        );
 
-        res.json({ success: true, message: "Status updated successfully", booking });
-    } catch (error) {
+        res.json({ success: true, message: "Status updated successfully", booking: updatedBooking });
+    } catch (error: any) {
         console.error("Error in changeBookingStatus:", error);
-        res.status(500).json({ success: false, message: "Server error" });
+        res.status(500).json({ success: false, message: "Server error: " + error.message });
+    }
+}
+
+// API to mark booking as paid (for COD)
+export const markBookingAsPaid = async (req: Request, res: Response) => {
+    try {
+        if (!req.user || !req.user._id) {
+            return res.status(401).json({ success: false, message: "User not authenticated" });
+        }
+
+        if (req.user.role !== "provider") {
+            return res.status(403).json({ success: false, message: "Unauthorized: Only providers can perform this action" });
+        }
+
+        const { bookingId } = req.body;
+        if (!bookingId) {
+            return res.status(400).json({ success: false, message: "Booking ID is required" });
+        }
+
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            return res.status(404).json({ success: false, message: "Booking not found" });
+        }
+
+        if (booking.provider.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: "Unauthorized: You can only update your own bookings" });
+        }
+
+        const updatedBooking = await Booking.findByIdAndUpdate(
+            bookingId,
+            { paymentStatus: "paid" },
+            { new: true }
+        );
+
+        res.json({ success: true, message: "Payment status updated to Paid", booking: updatedBooking });
+    } catch (error: any) {
+        console.error("Error in markBookingAsPaid:", error);
+        res.status(500).json({ success: false, message: "Server error: " + error.message });
     }
 }
 
@@ -215,4 +282,33 @@ export const getServiceAvailabilityForDate = async (req: Request, res: Response)
         console.error("Error in getServiceAvailabilityForDate:", error);
         res.status(500).json({ success: false, message: "Server error" });
     }
-}
+};
+
+// API to check availability for a range of dates (e.g., next 7 days)
+export const getServiceAvailabilityRange = async (req: Request, res: Response) => {
+    try {
+        const { serviceId } = req.params;
+        const { startDate, days } = req.query;
+
+        if (!startDate) return res.status(400).json({ success: false, message: "startDate is required" });
+        const numDays = parseInt(days as string) || 7;
+
+        const results = [];
+        const start = new Date(startDate as string);
+
+        for (let i = 0; i < numDays; i++) {
+            const current = new Date(start);
+            current.setDate(start.getDate() + i);
+            const isAvailable = await checkAvailability(serviceId, current);
+            results.push({
+                date: current.toISOString().split('T')[0],
+                isAvailable
+            });
+        }
+
+        res.json({ success: true, availability: results });
+    } catch (error) {
+        console.error("Error in getServiceAvailabilityRange:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};

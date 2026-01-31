@@ -47,23 +47,26 @@ const ServiceCategory = () => {
         <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-10">
 
             {/* TITLE */}
-            <div className="flex flex-col items-center w-full mb-8">
+            <div className="flex flex-col items-center w-full mb-12">
                 <Title title={currentCategory || "Category"} />
             </div>
 
             {/* BACK BUTTON */}
             <button
                 onClick={() => navigate(-1)}
-                className="flex items-center gap-2 mb-6 text-gray-500 cursor-pointer"
+                className="flex items-center gap-2 mb-8 text-gray-500 cursor-pointer hover:text-primary transition-colors group"
             >
-                <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-65" />
+                <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-65 group-hover:opacity-100 transition-opacity" />
                 Back
             </button>
 
             {/* CONTENT */}
             {loading ? (
                 <div className="flex justify-center h-[40vh] items-center">
-                    <p className="text-gray-500">Loading services...</p>
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                        <p className="text-gray-500 font-medium">Loading services...</p>
+                    </div>
                 </div>
             ) : services.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">

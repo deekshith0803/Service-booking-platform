@@ -10,6 +10,8 @@ export interface UserDocument extends Document {
   image?: string;
   isApproved: boolean;
   isProviderRequested: boolean;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
 }
 
 const userSchema = new mongoose.Schema<UserDocument>({
@@ -21,6 +23,8 @@ const userSchema = new mongoose.Schema<UserDocument>({
   image: { type: String, default: "" },
   isApproved: { type: Boolean, default: false },
   isProviderRequested: { type: Boolean, default: false },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
 });
 
 const User = mongoose.model<UserDocument>("User", userSchema);

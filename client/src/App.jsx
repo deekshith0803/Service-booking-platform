@@ -16,6 +16,8 @@ import ProviderMessages from "./pages/provider/ProviderMessages";
 import Login from "./components/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import ServiceCategory from "./pages/ServiceCategory";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import { Toaster } from "react-hot-toast";
 import { useAppContext } from "./context/AppContext";
 
@@ -42,6 +44,8 @@ const App = () => {
         <Route path="/service-details/:id" element={<Servicedetails />} />
         <Route path="/my-bookings" element={<MyBooking />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         <Route path="/provider" element={<Layout />}>
           <Route index element={<ProviderDashboard />} />

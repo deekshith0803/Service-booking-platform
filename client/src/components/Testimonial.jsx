@@ -50,25 +50,25 @@ const Testimonial = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.7, ease: "easeOut", delay: index * 0.08 }}
             whileHover={{ y: -4 }}
-            className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl"
+            className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl border border-transparent transition-all duration-300"
           >
             <div className="flex items-center gap-3">
               <img
-                className="w-12 h-12 rounded-full"
+                className="w-14 h-14 rounded-full border-2 border-primary/20"
                 src={testimonial.image}
                 alt={testimonial.name}
               />
               <div>
-                <p className="font-playfair text-xl">
+                <p className="font-bold text-xl">
                   {testimonial.name}
                 </p>
-                <p className="text-gray-500">
+                <p className="text-gray-500 text-sm uppercase tracking-wide font-medium">
                   {testimonial.location}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 mt-4">
+            <div className="flex items-center gap-1 mt-6">
               {Array(5)
                 .fill(0)
                 .map((_, i) => (
@@ -81,7 +81,7 @@ const Testimonial = () => {
                 ))}
             </div>
 
-            <p className="text-gray-500 max-w-90 mt-4 font-light">
+            <p className="text-gray-600 mt-5 leading-relaxed italic">
               “{testimonial.testimonial}”
             </p>
           </motion.div>

@@ -60,9 +60,9 @@ const MyBooking = () => {
       {/* Back */}
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 mb-6 text-gray-500 cursor-pointer"
+        className="flex items-center gap-2 mb-6 text-gray-500 hover:text-primary transition-colors cursor-pointer group"
       >
-        <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-65" />
+        <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-65 group-hover:opacity-100 transition-opacity" />
         Back
       </button>
 
@@ -85,7 +85,7 @@ const MyBooking = () => {
             whileHover={{ y: -4 }}
             transition={{ duration: 0.25 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3
-              gap-6 p-6 border border-borderColor rounded-lg mt-5 first:mt-12"
+              gap-8 p-8 border border-borderColor rounded-3xl mt-5 first:mt-12 bg-white transition-all duration-300 shadow-lg hover:shadow-xl shadow-gray-100"
           >
             {/* service image + info */}
             <div className="md:col-span-1">
@@ -96,8 +96,8 @@ const MyBooking = () => {
                   className="w-full h-auto aspect-video object-cover"
                 />
               </div>
-              <p className="font-medium">{booking.service.title}</p>
-              <p className="text-gray-500">
+              <p className="font-bold text-lg">{booking.service.title}</p>
+              <p className="text-gray-500 mt-1 uppercase tracking-wider text-xs font-semibold">
                 {booking.service.category} · {booking.service.service_area} ·{" "}
                 {booking.service.staffCount} staff
               </p>
@@ -105,51 +105,59 @@ const MyBooking = () => {
 
             {/* booking info */}
             <div className="md:col-span-1">
-              <div className="flex items-center gap-2">
-                <p className="px-3 py-1.5 bg-light rounded">
+              <div className="flex items-center gap-3">
+                <p className="px-4 py-2 bg-gray-50 rounded-xl text-xs font-bold transition-colors">
                   Booking #{index + 1}
                 </p>
                 <p
-                  className={`px-3 py-1 rounded-full ${booking.status === "confirmed"
-                    ? "bg-green-400/15 text-green-600"
-                    : "bg-red-400/15 text-red-600"
+                  className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest ${booking.status === "confirmed"
+                    ? "bg-green-400/10 text-green-600"
+                    : "bg-red-400/10 text-red-600"
                     }`}
                 >
-                  {booking.status}
+                  Booking: {booking.status}
+                </p>
+                <p
+                  className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest ${booking.paymentStatus === "paid"
+                    ? "bg-blue-400/10 text-blue-600"
+                    : "bg-yellow-400/10 text-yellow-600"
+                    }`}
+                >
+                  Payment: {booking.paymentStatus || 'pending'}
                 </p>
               </div>
 
-              <div className="flex items-start gap-2 mt-3">
+              <div className="flex items-start gap-3 mt-5">
                 <img
                   src={assets.calendar_icon_colored}
                   alt="calendar"
-                  className="w-4 h-4 mt-1"
+                  className="w-5 h-5 mt-0.5"
                 />
                 <div>
-                  <p className="text-gray-500">Date</p>
-                  <p>
+                  <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Date</p>
+                  <p className="font-medium mt-0.5">
                     {booking.date?.split("T")[0]}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-2 mt-3">
+              <div className="flex items-start gap-3 mt-5">
                 <img
                   src={assets.location_icon_colored}
                   alt="location"
-                  className="w-4 h-4 mt-1"
+                  className="w-5 h-5 mt-0.5"
                 />
                 <div>
-                  <p className="text-gray-500">Contact & Address</p>
-                  <p className="font-medium">{booking.phone}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{booking.address}</p>
+                  <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Contact & Address</p>
+                  <p className="font-bold mt-0.5">{booking.phone}</p>
+                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">{booking.address}</p>
                 </div>
               </div>
 
               {booking.notes && (
-                <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Requirements</p>
-                  <p className="text-gray-600 text-xs italic leading-relaxed">"{booking.notes}"</p>
+                <div className="mt-5 p-4 bg-primary/5 rounded-2xl border border-primary/10 transition-colors">
+                  <p className="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em] mb-2">Requirements</p>
+                  <p className="text-gray-600 text-xs italic leading-relaxed font-medium">"{booking.notes}"</p>
                 </div>
               )}
 
@@ -175,11 +183,11 @@ const MyBooking = () => {
             {/* price */}
             <div className="md:col-span-1 flex flex-col justify-between gap-6">
               <div className="text-sm text-gray-500 md:text-right">
-                <p>Total Price</p>
-                <h1 className="text-2xl font-semibold text-primary">
+                <p className="text-xs font-bold uppercase tracking-widest mb-1">Total Price</p>
+                <h1 className="text-3xl font-black text-primary">
                   {currency} {booking.price}
                 </h1>
-                <p>Booked on {booking.createdAt?.split("T")[0]}</p>
+                <p className="mt-2 text-xs font-medium">Booked on {booking.createdAt?.split("T")[0]}</p>
               </div>
             </div>
           </motion.div>

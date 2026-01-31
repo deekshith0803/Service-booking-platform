@@ -14,6 +14,7 @@ import Message from "./model/Message.js";
 import Conversation from "./model/Conversation.js";
 import adminRouter from "./route/adminRoutes.js";
 import reviewRouter from "./route/reviewRoute.js";
+import paymentRouter from "./route/paymentRoute.js";
 
 const app = express();
 
@@ -96,6 +97,7 @@ async function start() {
     app.use("/api/chat", chatRouter);
     app.use("/api/admin", adminRouter);
     app.use("/api/reviews", reviewRouter);
+    app.use("/api/payment", paymentRouter);
 
     // start the server
     const PORT = process.env.PORT || 5000;

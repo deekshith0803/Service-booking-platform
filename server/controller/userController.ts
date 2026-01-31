@@ -4,6 +4,8 @@ import User from "../model/User.js";
 import generateToken from "../utils/generateToken.js";
 import { AuthenticatedRequest } from "../types/auth.js"
 import Service from "../model/Service.js";
+import crypto from "crypto";
+import sendResetPasswordEmail from "../utils/emailUtils.js";
 
 // REGISTER
 export const registerUser = async (req: Request, res: Response) => {
@@ -154,5 +156,71 @@ export const googleLogin = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Google Login Error:", error);
     res.status(500).json({ success: false, message: "Google Login Failed" });
+  }
+};
+
+// FORGOT PASSWORD
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.json({ success: false, message: "Email is required" });
+
+    const user = await User.findOne({ email });
+    if (!user) return res.json({ success: false, message: "User not found" });
+
+    // Generate Token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+    await user.save();
+
+    try {
+      await sendResetPasswordEmail(user.email, resetToken);
+      res.json({ success: true, message: "Reset link sent to your email" });
+    } catch (error) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save();
+      console.error("Email send error:", error);
+      res.status(500).json({ success: false, message: "Failed to send email" });
+    }
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// RESET PASSWORD
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password || password.length < 8) {
+      return res.json({ success: false, message: "Password must be at least 8 characters" });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.json({ success: false, message: "Invalid or expired token" });
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({ success: true, message: "Password reset successful" });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

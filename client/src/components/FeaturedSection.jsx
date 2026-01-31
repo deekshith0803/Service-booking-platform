@@ -49,9 +49,7 @@ const FeaturedSection = () => {
         whileHover={{ opacity: 0.85 }}
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.25 }}
-        className="flex items-center justify-center gap-2 py-2 px-4
-          border border-borderColor hover:bg-gray-100
-          rounded-md mt-18 cursor-pointer"
+        className="flex items-center justify-center gap-2 py-2 px-6 border border-borderColor rounded-full mt-18 cursor-pointer transition-all duration-300 hover:bg-gray-100 text-gray-700"
       >
         Explore all services
         <img src={assets.arrow_icon} alt="arrow" />

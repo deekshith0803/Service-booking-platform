@@ -81,6 +81,9 @@ const ProviderDashboard = () => {
                             <div className='flex items-center gap-2 font-medium'>
                                 <p className='text-sm text-gray-500'>{currency}{booking.price}</p>
                                 <p className='px-3 py-0.5 border border-borderColor rounded-full text-sm' >{booking.status}</p>
+                                <p className={`px-3 py-0.5 rounded-full text-sm ${booking.paymentStatus === 'paid' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
+                                    {booking.paymentStatus || 'pending'}
+                                </p>
                             </div>
                         </div>
                     ))}

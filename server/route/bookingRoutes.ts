@@ -2,10 +2,12 @@ import express from "express";
 import {
     changeBookingStatus,
     checkAvailabilityOfService,
-    createBooling,
+    createBooking,
     getProviderBooking,
     getUserBooking,
-    getServiceAvailabilityForDate
+    getServiceAvailabilityForDate,
+    getServiceAvailabilityRange,
+    markBookingAsPaid
 } from "../controller/bookingController.js";
 import { protect } from "../middleware/auth.js";
 
@@ -13,9 +15,11 @@ const bookingRouter = express.Router();
 
 bookingRouter.post("/check-availability", checkAvailabilityOfService);
 bookingRouter.get("/service-availability/:serviceId", getServiceAvailabilityForDate);
-bookingRouter.post("/create", protect, createBooling);
+bookingRouter.get("/service-availability-range/:serviceId", getServiceAvailabilityRange);
+bookingRouter.post("/create", protect, createBooking);
 bookingRouter.get("/user", protect, getUserBooking);
 bookingRouter.get("/provider", protect, getProviderBooking);
 bookingRouter.post("/change-status", protect, changeBookingStatus);
+bookingRouter.post("/mark-paid", protect, markBookingAsPaid);
 
 export default bookingRouter;

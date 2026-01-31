@@ -3,6 +3,7 @@ import User from "../model/User.js";
 import Service from "../model/Service.js";
 import Booking from "../model/Booking.js";
 import Review from "../model/Review.js";
+import bcrypt from "bcrypt";
 
 export const getAdminStats = async (req: Request, res: Response) => {
     try {
@@ -168,6 +169,26 @@ export const updateUserRole = async (req: Request, res: Response) => {
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
         res.status(200).json({ success: true, message: "User updated successfully", user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+// Update user password by Admin
+export const updateUserPassword = async (req: Request, res: Response) => {
+    try {
+        const { userId, newPassword } = req.body;
+
+        if (!newPassword || newPassword.length < 8) {
+            return res.json({ success: false, message: "Password must be at least 8 characters" });
+        }
+
+        const hashed = await bcrypt.hash(newPassword, 10);
+        const user = await User.findByIdAndUpdate(userId, { password: hashed }, { new: true });
+
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        res.status(200).json({ success: true, message: "Password updated successfully" });
     } catch (error) {
         res.status(500).json({ success: false, message: "Server error" });
     }

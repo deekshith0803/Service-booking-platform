@@ -32,6 +32,20 @@ const ManageBookings = () => {
         }
     }
 
+    const markAsPaid = async (bookingId) => {
+        try {
+            const { data } = await axios.post(`/api/bookings/mark-paid`, { bookingId })
+            if (data?.success) {
+                toast.success(data.message)
+                fetchBookings()
+            } else {
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error(error?.response?.data?.message || "Failed to update payment status")
+        }
+    }
+
     useEffect(() => {
         fetchBookings()
     }, [])
@@ -82,22 +96,39 @@ const ManageBookings = () => {
                                     {currency} {booking.price}
                                 </td>
                                 <td className='p-3 max-md:hidden'>
-                                    <span className='bg-gray-100 px-3 py-1 rounded-full text-xs' >
-                                        offline
+                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${booking.paymentMethod === 'cod' || booking.paymentId === 'COD' ? 'bg-gray-100 text-gray-700' : 'bg-blue-100 text-blue-700'}`}>
+                                        {booking.paymentMethod === 'cod' || booking.paymentId === 'COD' ? 'COD' : 'Online'}
                                     </span>
                                 </td>
                                 <td className='p-3'>
-                                    {booking.status === 'pending' ? (
-                                        <select onChange={(e) => changeBookingStatus(booking._id, e.target.value)} value={booking.status} className='px-2 py-1.5 mt-1 text-gray-500 border border-borderColor rounded-md outline-none'>
-                                            <option value='pending'>Pending</option>
-                                            <option value='confirmed'>Confirm</option>
-                                            <option value='cancelled'>Cancel</option>
-                                        </select>
-                                    ) : (
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${booking.status === "confirmed" ? 'bg-green-100 text-green-500' : 'bg-red-100 text-red-500'}`} >
-                                            {booking.status}
-                                        </span>
-                                    )}
+                                    <div className="flex flex-col gap-2">
+                                        {booking.status === 'pending' ? (
+                                            <select onChange={(e) => changeBookingStatus(booking._id, e.target.value)} value={booking.status} className='px-2 py-1.5 text-gray-500 border border-borderColor rounded-md outline-none w-full'>
+                                                <option value='pending'>Pending</option>
+                                                <option value='confirmed'>Confirm</option>
+                                                <option value='cancelled'>Cancel</option>
+                                            </select>
+                                        ) : (
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold text-center ${booking.status === "confirmed" ? 'bg-green-100 text-green-500' : 'bg-red-100 text-red-500'}`} >
+                                                {booking.status}
+                                            </span>
+                                        )}
+
+                                        {/* Mark as Paid Button for COD */}
+                                        {(booking.paymentMethod === 'cod' || booking.paymentId === 'COD') && booking.paymentStatus !== 'paid' && booking.status !== 'cancelled' && (
+                                            <button
+                                                onClick={() => markAsPaid(booking._id)}
+                                                className="px-3 py-1 bg-green-500 text-white rounded-md text-xs font-bold hover:bg-green-600 transition-colors"
+                                            >
+                                                Mark Paid
+                                            </button>
+                                        )}
+                                        {booking.paymentStatus === 'paid' && (
+                                            <span className="text-xs text-center text-green-600 font-bold bg-green-50 px-2 py-1 rounded-full border border-green-100">
+                                                PAID
+                                            </span>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}

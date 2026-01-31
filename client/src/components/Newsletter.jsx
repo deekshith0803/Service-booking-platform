@@ -11,7 +11,7 @@ const Newsletter = () => {
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
       <motion.h1
-        className="md:text-4xl text-2xl font-semibold"
+        className="md:text-4xl text-2xl font-bold"
         initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -40,7 +40,7 @@ const Newsletter = () => {
       >
         <input
           className="border border-gray-300 rounded-md h-full border-r-0 outline-none
-            w-full rounded-r-none px-3 text-gray-500"
+            w-full rounded-r-none px-4 bg-white text-gray-700"
           type="email"
           placeholder="Enter your email id"
           required

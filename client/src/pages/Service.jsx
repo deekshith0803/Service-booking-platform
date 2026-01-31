@@ -57,12 +57,12 @@ const Service = () => {
       <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-10">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 mb-6 text-gray-500"
+          className="flex items-center gap-2 mb-6 text-gray-500 hover:text-primary transition-colors cursor-pointer group"
         >
           <img
             src={assets.arrow_icon}
             alt="back"
-            className="rotate-180 opacity-65"
+            className="rotate-180 opacity-65 group-hover:opacity-100 transition-opacity"
           />
           Back
         </button>
@@ -73,7 +73,7 @@ const Service = () => {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="flex flex-col items-center py-20 bg-light max-md:px-4"
+        className="flex flex-col items-center py-24 bg-gray-50 max-md:px-4"
       >
         <Title
           title="Services"
@@ -85,32 +85,32 @@ const Service = () => {
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.15, duration: 0.4 }}
-          className="flex items-center bg-white px-4 mt-6 max-w-140 w-full h-12 rounded-full shadow"
+          className="flex items-center bg-white px-6 mt-10 max-w-2xl w-full h-14 rounded-full shadow-xl border border-transparent transition-all"
         >
           <img
             src={assets.search_icon}
             alt="search"
-            className="w-4.5 h-4.5 mr-2"
+            className="w-5 h-5 mr-3 opacity-60"
           />
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             type="text"
-            placeholder="Search services"
-            className="w-full outline-none h-full text-gray-500"
+            placeholder="Search services..."
+            className="w-full outline-none h-full bg-transparent text-gray-700 placeholder:text-gray-400 font-medium"
           />
           <img
             src={assets.filter_icon}
             alt="filter"
-            className="w-4.5 h-4.5 ml-2"
+            className="w-5 h-5 ml-3 opacity-60 cursor-pointer hover:opacity-100 transition-opacity"
           />
         </motion.div>
       </motion.div>
 
       {/* Results */}
-      <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-10">
-        <p className="text-gray-500 xl:px-10 max-w-7xl mx-auto">
-          Showing {filteredServices.length} service
+      <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-16">
+        <p className="text-gray-500 xl:px-10 max-w-7xl mx-auto font-medium">
+          Showing <span className="text-primary font-bold">{filteredServices.length}</span> {filteredServices.length === 1 ? 'service' : 'services'}
         </p>
 
         <motion.div

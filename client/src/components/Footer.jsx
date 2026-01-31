@@ -42,12 +42,12 @@ const Footer = () => {
         {/* Brand */}
         <motion.div variants={itemVariants}>
           <img src={assets.logo} alt="logo" className="h-8 md:h-9" />
-          <p className="max-w-80 mt-3">
+          <p className="max-w-80 mt-4 leading-relaxed">
             Fixora connects you with trusted professionals for every service you
             need — fast, reliable, and hassle-free.
           </p>
 
-          <div className="flex items-center gap-3 mt-6">
+          <div className="flex items-center gap-4 mt-8">
             {[assets.facebook_logo, assets.instagram_logo, assets.twitter_logo, assets.gmail_logo].map(
               (icon, i) => (
                 <motion.a
@@ -65,8 +65,8 @@ const Footer = () => {
 
         {/* Quick Links */}
         <motion.div variants={itemVariants}>
-          <h2 className="text-base font-medium text-gray-800">Quick Links</h2>
-          <ul className="mt-3 flex flex-col gap-1.5">
+          <h2 className="text-base font-bold text-gray-800 tracking-wide uppercase">Quick Links</h2>
+          <ul className="mt-4 flex flex-col gap-2.5">
             {["Home", "Browse Services", "List Your Service", "About Us"].map(
               (item, i) => (
                 <motion.li
@@ -74,7 +74,7 @@ const Footer = () => {
                   whileHover={{ opacity: 0.6, x: 2 }}
                   transition={{ duration: 0.25 }}
                 >
-                  <a href="#">{item}</a>
+                  <a href="#" className="hover:text-primary transition-colors">{item}</a>
                 </motion.li>
               )
             )}
@@ -83,8 +83,8 @@ const Footer = () => {
 
         {/* Contact */}
         <motion.div variants={itemVariants}>
-          <h2 className="text-base font-medium text-gray-800">Contact</h2>
-          <ul className="mt-3 flex flex-col gap-1.5">
+          <h2 className="text-base font-bold text-gray-800 tracking-wide uppercase">Contact</h2>
+          <ul className="mt-4 flex flex-col gap-2.5">
             <li>870-990 fixora</li>
             <li>India, Kerala</li>
             <li>+91 87889-8988</li>
@@ -94,8 +94,8 @@ const Footer = () => {
 
         {/* Resources */}
         <motion.div variants={itemVariants}>
-          <h2 className="text-base font-medium text-gray-800">Resources</h2>
-          <ul className="mt-3 flex flex-col gap-1.5">
+          <h2 className="text-base font-bold text-gray-800 tracking-wide uppercase">Resources</h2>
+          <ul className="mt-4 flex flex-col gap-2.5">
             {["Help", "Terms of Service", "Privacy Policy", "Insurance"].map(
               (item, i) => (
                 <motion.li
@@ -103,7 +103,7 @@ const Footer = () => {
                   whileHover={{ opacity: 0.6, x: 2 }}
                   transition={{ duration: 0.25 }}
                 >
-                  <a href="#">{item}</a>
+                  <a href="#" className="hover:text-primary transition-colors">{item}</a>
                 </motion.li>
               )
             )}
@@ -113,20 +113,21 @@ const Footer = () => {
         {/* Bottom bar */}
         <motion.div
           variants={itemVariants}
-          className="w-full flex flex-col md:flex-row items-center justify-between py-5"
+          className="w-full flex flex-col md:flex-row items-center justify-between py-6 mt-4"
         >
-          <p className="text-center md:text-left">
-            © {new Date().getFullYear()} Brand. All rights reserved.
+          <p className="text-center md:text-left text-xs font-medium">
+            © {new Date().getFullYear()} Fixora. All rights reserved.
           </p>
 
-          <ul className="flex items-center gap-4 md:ml-auto">
+          <ul className="flex items-center gap-6 md:ml-auto mt-4 md:mt-0">
             {["Privacy", "Terms", "Cookies"].map((item, i) => (
               <motion.li
                 key={i}
                 whileHover={{ opacity: 0.6 }}
                 transition={{ duration: 0.25 }}
+                className="text-xs font-semibold"
               >
-                <a href="#">{item}</a>
+                <a href="#" className="hover:text-primary transition-colors">{item}</a>
               </motion.li>
             ))}
           </ul>

@@ -26,6 +26,7 @@ export const AppProvider = ({ children }) => {
     const [date, setDate] = useState("");
     const [time, setTime] = useState("");
 
+
     // -----------------------------------
     // LOAD TOKEN ON APP START (if exists)
     // -----------------------------------
@@ -124,6 +125,7 @@ export const AppProvider = ({ children }) => {
         setDate,
         time,
         setTime,
+
     };
 
     return (

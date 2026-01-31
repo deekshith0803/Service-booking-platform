@@ -48,25 +48,25 @@ const ServiceCard = ({ service }) => {
             {currency}
             {service.price}
           </span>
-          <span className="text-sm text-white/80"> / Hour</span>
+          <span className="text-sm text-white/80"></span>
         </motion.div>
       </div>
 
       {/* Content */}
-      <div className="p-4 sm:p-5">
-        <h3 className="text-lg font-semibold">{service.title}</h3>
-        <p className="text-muted-foreground text-sm">
+      <div className="p-6">
+        <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{service.title}</h3>
+        <p className="text-gray-500 text-sm mt-1 uppercase tracking-wider font-semibold">
           {service.category}
         </p>
 
-        <div className="mt-3 grid grid-cols-2 gap-y-2">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <img src={assets.users_icon} alt="" className="h-4 mr-2" />
+        <div className="mt-4 flex flex-wrap gap-3">
+          <div className="flex items-center text-xs font-medium text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full">
+            <img src={assets.users_icon} alt="" className="h-3.5 mr-2" />
             <span>{service.staffCount} Staff</span>
           </div>
 
-          <div className="flex items-center text-sm text-muted-foreground">
-            <img src={assets.location_icon} alt="" className="h-4 mr-2" />
+          <div className="flex items-center text-xs font-medium text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full">
+            <img src={assets.location_icon} alt="" className="h-3.5 mr-2" />
             <span>{service.service_area}</span>
           </div>
         </div>

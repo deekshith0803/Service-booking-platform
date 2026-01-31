@@ -52,7 +52,7 @@ const Categories = () => {
 
     return (
         <motion.div
-            className="mt-16 px-4 md:px-8 bg-gray-50 py-5"
+            className="mt-16 px-4 md:px-8 bg-gray-50 py-16"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -65,7 +65,7 @@ const Categories = () => {
             />
 
             <motion.div
-                className="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-10 gap-4 md:gap-6 pt-10"
+                className="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-10 gap-4 md:gap-6 pt-16"
                 variants={containerVariants}
                 initial="hidden"
                 whileInView="visible"
@@ -77,20 +77,20 @@ const Categories = () => {
                         variants={cardVariants}
                         whileHover={{ y: -6 }}
                         whileTap={{ scale: 0.97 }}
-                        className="cursor-pointer p-4 rounded-xl flex flex-col items-center justify-center
-              bg-white shadow-lg hover:shadow-xl border border-gray-100"
+                        className="cursor-pointer p-5 rounded-2xl flex flex-col items-center justify-center
+                          bg-white shadow-lg hover:shadow-xl border border-gray-100 transition-all duration-300"
                         onClick={() => {
                             navigate(`/service/${category.toLowerCase()}`);
                             window.scrollTo(0, 0);
                         }}
                     >
-                        <div className="mb-3">
+                        <div className="mb-4">
                             {categoryIcons[category] || (
                                 <EllipsisHorizontalIcon className="w-8 h-8 text-blue-500" />
                             )}
                         </div>
 
-                        <p className="text-sm font-semibold text-gray-700 text-center">
+                        <p className="text-sm font-bold text-gray-700 text-center">
                             {category}
                         </p>
                     </motion.div>

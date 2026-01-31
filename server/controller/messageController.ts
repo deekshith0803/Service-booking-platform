@@ -32,13 +32,15 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
 
 // Get chat history between two users (or just for the current user)
 // If bookingId is provided, filter by that too.
+// Get chat history between two users
 export const getMessages = async (req: Request, res: Response): Promise<void> => {
     try {
         const { userId } = req.params; // The "other" user ID
-        const currentUserId = req.query.currentUserId as string; // passed as query for simplicity or from auth middleware
+        // @ts-ignore - req.user is added by middleware
+        const currentUserId = req.user?._id;
 
-        if (!currentUserId || !userId) {
-            res.status(400).json({ success: false, message: "User IDs required" });
+        if (!currentUserId) {
+            res.status(401).json({ success: false, message: "User not authenticated" });
             return;
         }
 
@@ -57,9 +59,16 @@ export const getMessages = async (req: Request, res: Response): Promise<void> =>
 }
 
 // Get unread counts for a user (grouped by sender)
+// Get unread counts for a user (grouped by sender)
 export const getUnreadCounts = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { userId } = req.params; // The user checking their unread messages
+        // @ts-ignore
+        const userId = req.user?._id;
+
+        if (!userId) {
+            res.status(401).json({ success: false, message: "User not authenticated" });
+            return;
+        }
 
         // Aggregate to count unread messages where receiverId is the current user
         const unreadCounts = await Message.aggregate([
@@ -81,9 +90,17 @@ export const getUnreadCounts = async (req: Request, res: Response): Promise<void
 };
 
 // Mark messages as read from a specific sender
+// Mark messages as read from a specific sender
 export const markAsRead = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { senderId, receiverId } = req.body;
+        const { senderId } = req.body;
+        // @ts-ignore
+        const receiverId = req.user?._id;
+
+        if (!receiverId) {
+            res.status(401).json({ success: false, message: "Unauthorized" });
+            return;
+        }
 
         await Message.updateMany(
             {

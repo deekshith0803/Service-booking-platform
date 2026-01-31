@@ -53,8 +53,8 @@ const Navbar = () => {
       initial={{ opacity: 0, y: -24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`sticky top-0 left-0 w-full z-50 border-b border-borderColor
-      ${location.pathname === "/" ? "bg-light" : "bg-white"}`}
+      className={`sticky top-0 left-0 w-full z-50 border-b border-borderColor bg-white
+      ${location.pathname === "/" ? "bg-light" : ""}`}
     >
       <div className="flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4">
 
@@ -114,24 +114,26 @@ const Navbar = () => {
           )}
 
           {/* Actions */}
-          {user?.email !== "deekshithm321@gmail.com" && (
-            <motion.button
-              whileHover={!user?.isProviderRequested ? { scale: 1.05 } : {}}
-              disabled={user?.isProviderRequested && !isProvider}
-              onClick={() => (isProvider ? navigate("/provider") : changeRole())}
-              className={user?.isProviderRequested && !isProvider ? "opacity-50 cursor-not-allowed" : ""}
-            >
-              {isProvider ? "Dashboard" : user?.isProviderRequested ? "Pending Approval" : "List your service"}
-            </motion.button>
-          )}
+          <div className="flex items-center gap-4">
+            {user?.email !== "deekshithm321@gmail.com" && (
+              <motion.button
+                whileHover={!user?.isProviderRequested ? { scale: 1.05 } : {}}
+                disabled={user?.isProviderRequested && !isProvider}
+                onClick={() => (isProvider ? navigate("/provider") : changeRole())}
+                className={user?.isProviderRequested && !isProvider ? "opacity-50 cursor-not-allowed" : ""}
+              >
+                {isProvider ? "Dashboard" : user?.isProviderRequested ? "Pending Approval" : "List your service"}
+              </motion.button>
+            )}
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            onClick={() => (user ? logout() : setShowLogin(true))}
-            className="px-8 py-2 bg-primary text-white rounded-full"
-          >
-            {user ? "Logout" : "Login"}
-          </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              onClick={() => (user ? logout() : setShowLogin(true))}
+              className="px-8 py-2 bg-primary text-white rounded-full font-medium"
+            >
+              {user ? "Logout" : "Login"}
+            </motion.button>
+          </div>
         </div>
 
         {/* Mobile Menu Button */}

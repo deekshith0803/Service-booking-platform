@@ -1,6 +1,5 @@
-import React from "react";
-import { assets } from "../assets/assets";
 import { motion } from "framer-motion";
+import { assets } from "../assets/assets";
 
 const Banner = () => {
   return (
@@ -10,7 +9,7 @@ const Banner = () => {
       viewport={{ once: true }}
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="flex flex-col md:flex-row md:items-start items-center justify-between
-        px-8 min-md:pl-14 pt-10
+        px-8 min-md:pl-14 pt-10 transition-all duration-500
         bg-gradient-to-r from-[#0558fe] to-[#a9cfff]
         max-w-6xl mx-3 md:mx-auto rounded-3xl overflow-hidden"
     >
