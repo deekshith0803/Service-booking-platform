@@ -27,7 +27,7 @@ const ServiceCategory = () => {
     const fetchServices = async () => {
         try {
             const { data } = await axios.get(
-                `/api/user/services${category}`
+                `/api/user/services?category=${category}`
             );
 
             if (data.success) {
